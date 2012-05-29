@@ -58,5 +58,4 @@
     ) 
 )
 
-(define test (patternBuild 100))
-(list test) 
+(patternBuild 100) 

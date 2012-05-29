@@ -45,13 +45,18 @@
    )
 )
 
-(tryHyps observedData someHyps) ;try hypotheses.
+;(tryHyps observedData someHyps) ;try hypotheses.
 
-;(length someHyps)
-;(length observedData)
-;(eachHyps observedData (car someHyps))
-;(eachHyps observedData (car (cdr someHyps)))
-;(eachHyps observedData (car (cdr (cdr someHyps))))
-;(eachHyps observedData (car (cdr (cdr (cdr someHyps)))))
-;(eachHyps observedData (car (cdr (cdr (cdr (cdr someHyps))))))
-;(eachHyps observedData (car (cdr (cdr (cdr (cdr (cdr someHyps)))))))
+(define patternBuild 
+    (lambda(len)
+        (cond 
+            ((eq? len 0) '())
+            (#t (append (list 'a 'b 'c (if (flip) 'd 'e)) (patternBuild (- len 1)) 
+                )
+            )             
+        )
+    ) 
+)
+
+(define test (patternBuild 100))
+(list test) 

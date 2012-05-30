@@ -50,6 +50,11 @@
 
 (define observedData (patternBuild 100))
 
+(define E (particularValue (occurences observedData) 'e))
+(define D (particularValue (occurences observedData) 'd))
+
+(if (eq? (apply > (append E D)) #t) (list 'e) (list 'd))
+
 (define makeHyps
    (lambda(obs)
       (cond ( (null? obs) '() )
@@ -57,11 +62,11 @@
                     (lambda(curr) (if (equal? curr (car obs)) 
                                       (list 
                                           (if (equal? (cdr obs) '()) 
-                                              (if (flip) 'd 'e) 
+                                              (if (eq? (apply > (append E D)) #t) (list 'e) (list 'd)) 
                                               (cadr obs)
                                           )
                                       ) 
-                                      (if (flip) 'd 'e)
+                                      (if (eq? (apply > (append E D)) #t) (list 'e) (list 'd))
                                   )
                     )
                     (makeHyps (cdr obs))

@@ -1,4 +1,41 @@
 #lang scheme
+(define rember
+        (lambda  (a L) 
+              (cond ((null? L)                           (quote () ) )
+                    ((equal? (car  L) a)      (rember  a  (cdr  L) ) ) 
+                    (else  (cons  (car  L)  (rember  a  (cdr  L) ) ) )
+              )
+        )
+)
+
+(define count 
+       (lambda (a L) 
+                (cond ( (null? L)                                  0 ) 
+                      ( (equal? a (car L))  (+ 1 (count a (cdr L)) ) )
+                      ( else                      (count a (cdr L) ) )
+                )
+       )
+)
+
+(define occurences 
+        (lambda (L) 
+                (if  (null? L) (quote ( ) )
+                     (cons (list (car L)        (count (car L) L) )
+                            (occurences (rember (car L) (cdr L) ) )
+                     )
+                )    
+        )
+)
+
+(define particularValue 
+    (lambda(L char)
+        (cond 
+            ( (or (null? L) (null? char))         '() )
+            ( (eq? (car (car L))  char) (cdr (car L)) )
+            ( else     (particularValue (cdr L) char) )           
+        )
+    ) 
+)
 
 (define patternBuild 
     (lambda(len)

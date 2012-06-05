@@ -37,6 +37,7 @@
     ) 
 )
 
+;Build a pattern repeated len times.
 (define patternBuild 
     (lambda(len)
         (cond 
@@ -50,10 +51,10 @@
 
 (define observedData (patternBuild 100))
 
-(define E (particularValue (occurences observedData) 'e))
-(define D (particularValue (occurences observedData) 'd))
+(define E (particularValue (occurences observedData) 'e)) ;Get the number of a particular value
+(define D (particularValue (occurences observedData) 'd)) ;in the observed data. 
 
-(if (eq? (apply > (append E D)) #t) (list 'e) (list 'd))
+;(if (eq? (apply > (append E D)) #t) (list 'e) (list 'd))
 
 (define makeHyps
    (lambda(obs)
@@ -62,6 +63,8 @@
                     (lambda(curr) (if (equal? curr (car obs)) 
                                       (list 
                                           (if (equal? (cdr obs) '()) 
+                                              ;if the hypothesis doesn't know then pick the most 
+                                              ;frequent of the two observations
                                               (if (eq? (apply > (append E D)) #t) (list 'e) (list 'd)) 
                                               (cadr obs)
                                           )

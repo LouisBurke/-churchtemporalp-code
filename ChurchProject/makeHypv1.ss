@@ -27,16 +27,6 @@
         )
 )
 
-(define particularValue 
-    (lambda(L char)
-        (cond 
-            ( (or (null? L) (null? char))         '() )
-            ( (eq? (car (car L))  char) (cdr (car L)) )
-            ( else     (particularValue (cdr L) char) )           
-        )
-    ) 
-)
-
 ;Build a pattern repeated len times.
 (define patternBuild 
     (lambda(len)
@@ -45,6 +35,16 @@
             (#t (append (list 'a 'b 'c (if (flip) 'd 'e)) (patternBuild (- len 1)) 
                 )
             )             
+        )
+    ) 
+)
+
+(define particularValue 
+    (lambda(L char)
+        (cond 
+            ( (or (null? L) (null? char))         '() )
+            ( (eq? (car (car L))  char) (cdr (car L)) )
+            ( else     (particularValue (cdr L) char) )           
         )
     ) 
 )
@@ -81,7 +81,19 @@
 
 (define someHyps (makeHyps observedData)) ;generate hypotheses.
 
-((car someHyps) 'c)
+;((car someHyps) 'c)
+
+;(define samples
+;    (mh-query 100 100
+   
+;        (equal? 'e ((car someHyps) 'c))
+
+;        (equal? 'c ((car someHyps) 'b))
+;    )
+;)
+
+;(hist samples)
+
 ;(define eachHyps
 ;   (lambda(data hypoth)
 ;       (cond ((null? data) '()) 

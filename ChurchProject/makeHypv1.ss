@@ -39,6 +39,18 @@
     ) 
 )
 
+;Build a pattern repeated len times.
+(define patternBuildByRules
+    (lambda(rulesList len)
+        (cond 
+            ((eq? len 0) '())
+            (#t (append (list 'a 'b 'c (if (flip) 'd 'e)) (patternBuild (- len 1)) 
+                )
+            )             
+        )
+    ) 
+)
+
 (define particularValue 
     (lambda(L char)
         (cond 

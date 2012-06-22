@@ -1,12 +1,12 @@
 #lang scheme
-(define rember
-        (lambda  (a L) 
-              (cond ((null? L)                           (quote () ) )
-                    ((equal? (car  L) a)      (rember  a  (cdr  L) ) ) 
-                    (else  (cons  (car  L)  (rember  a  (cdr  L) ) ) )
-              )
-        )
-)
+;(define rember
+;        (lambda  (a L) 
+;              (cond ((null? L)                           (quote () ) )
+;                    ((equal? (car  L) a)      (rember  a  (cdr  L) ) ) 
+;                    (else  (cons  (car  L)  (rember  a  (cdr  L) ) ) )
+;              )
+;        )
+;)
 
 (define count 
        (lambda (a L) 
@@ -21,35 +21,24 @@
         (lambda (L) 
                 (if  (null? L) (quote ( ) )
                      (cons (list (car L)        (count (car L) L) )
-                            (occurences (rember (car L) (cdr L) ) )
+                            (occurences (remq (car L) (cdr L) ) )
                      )
                 )    
         )
 )
 
 ;Build a pattern repeated len times.
-(define patternBuild 
-    (lambda(len)
-        (cond 
-            ((eq? len 0) '())
-            (#t (append (list 'a 'b 'c (if (flip) 'd 'e)) (patternBuild (- len 1)) 
-                )
-            )             
-        )
-    ) 
-)
+;(define patternBuild 
+;    (lambda(len)
+;        (cond 
+;            ((eq? len 0) '())
+;            (#t (append (list 'a 'b 'c (if (flip) 'd 'e)) (patternBuild (- len 1)) 
+;                )
+;            )             
+;        )
+;    ) 
+;)
 
-;Build a pattern repeated len times.
-(define patternBuildByRules
-    (lambda(rulesList len)
-        (cond 
-            ((eq? len 0) '())
-            (#t (append (list 'a 'b 'c (if (flip) 'd 'e)) (patternBuild (- len 1)) 
-                )
-            )             
-        )
-    ) 
-)
 
 (define particularValue 
     (lambda(L char)
@@ -61,7 +50,7 @@
     ) 
 )
 
-(define observedData (patternBuild 100))
+(define observedData (list 'a 'b 'c 'd 'e 'a 'b 'c 'd 'e 'a 'b 'c 'd 'e))
 
 (define E (particularValue (occurences observedData) 'e)) ;Get the number of a particular value
 (define D (particularValue (occurences observedData) 'd)) ;in the observed data. 
@@ -91,8 +80,8 @@
    )
 )
 
-(define someHyps (makeHyps observedData)) ;generate hypotheses.
-
+;(define someHyps (makeHyps observedData)) ;generate hypotheses.
+(list E)
 ;((car someHyps) 'c)
 
 ;(define samples

@@ -64,8 +64,6 @@
                     (lambda(curr) (if (equal? curr (car obs)) 
                                       (list 
                                           (if (equal? (cdr obs) '()) 
-                                              ;if the hypothesis doesn't know then pick the most 
-                                              ;frequent of the two observations
                                               (if (eq? (apply > (append E D)) #t) (list 'e) (list 'd)) 
                                               (cadr obs)
                                           )

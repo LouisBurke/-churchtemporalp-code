@@ -1,12 +1,32 @@
 #lang scheme
-;(define rember
-;        (lambda  (a L) 
-;              (cond ((null? L)                           (quote () ) )
-;                    ((equal? (car  L) a)      (rember  a  (cdr  L) ) ) 
-;                    (else  (cons  (car  L)  (rember  a  (cdr  L) ) ) )
-;              )
-;        )
-;)
+(require (planet williams/science/random-source))
+
+(define (random-element list)
+  (list-ref list (random (length list))))
+
+(define rules (list 
+                   (lambda(curr) (if (eq? (first curr) 'a) 'b '())) ;1
+                   (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));2
+                   (lambda(curr) (if (eq? (car curr) 'b) 'a '()));3
+                   (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));4
+                   (lambda(curr) (if (and (eq? (car curr) 'a) (eq? (cadr curr) 'b)) 'c '()));5
+                   (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));6
+                   (lambda(curr) (if (and (eq? (car curr) 'e) (eq? (cadr curr) 'c)) 'q '()));7
+                   (lambda(curr) (if (and (eq? (first curr) 'c) (eq? (last curr) 'b)) 'a '()));8
+                   (lambda(curr) (if (and (eq? (car curr) 'q) (eq? (cadr curr) 'e)) (random-element curr) '()));9
+              )
+)
+
+(define patternBuildRepeat 
+    (lambda(len data)
+        (cond 
+            ((eq? len 0) '())
+            (#t (let ([x (last(patternBuild rules data))] ) (append x (patternBuildRepeat (- len 1) x))))
+        )
+    ) 
+)
+
+(define data (list 'a 'b))
 
 (define count 
        (lambda (a L) 
@@ -27,19 +47,6 @@
         )
 )
 
-;Build a pattern repeated len times.
-;(define patternBuild 
-;    (lambda(len)
-;        (cond 
-;            ((eq? len 0) '())
-;            (#t (append (list 'a 'b 'c (if (flip) 'd 'e)) (patternBuild (- len 1)) 
-;                )
-;            )             
-;        )
-;    ) 
-;)
-
-
 (define particularValue 
     (lambda(L char)
         (cond 
@@ -50,67 +57,40 @@
     ) 
 )
 
-(define observedData (list 'a 'b 'c 'd 'e 'a 'b 'c 'd 'e 'a 'b 'c 'd 'e))
+(define patternBuild 
+        (lambda (rules L) 
+                 (cond ( (null? rules) (quote ( ) ) )
+                       ( #t (let ([x (list ((car rules) L))])
+                            (cons (remq '() (append x L)) (patternBuild (cdr rules) (remq '() (append x L)))
+                            ))
+                       )
+                 )
 
-(define E (particularValue (occurences observedData) 'e)) ;Get the number of a particular value
-(define D (particularValue (occurences observedData) 'd)) ;in the observed data. 
+        )
+)
 
-;(if (eq? (apply > (append E D)) #t) (list 'e) (list 'd))
+;(last (patternBuild rules data))
+(define observedData (patternBuildRepeat 5 data))
+
+;observedData
 
 (define makeHyps
    (lambda(obs)
       (cond ( (null? obs) '() )
-            (#t (cons
-                    (lambda(curr) (if (equal? curr (car obs)) 
-                                      (list 
-                                          (if (equal? (cdr obs) '()) 
-                                              (if (eq? (apply > (append E D)) #t) (list 'e) (list 'd)) 
-                                              (cadr obs)
-                                          )
-                                      ) 
-                                      (if (eq? (apply > (append E D)) #t) (list 'e) (list 'd))
-                                  )
-                    )
-                    (makeHyps (cdr obs))
-                )
-            )
+            (#t (cons (lambda(curr) (if (equal? curr (car obs)) (list (if (equal? (cdr obs) '()) '(X) (cadr obs))) '(X))) (makeHyps (cdr obs))))
       )
    )
 )
 
-;(define someHyps (makeHyps observedData)) ;generate hypotheses.
-(list E)
-;((car someHyps) 'c)
+(define some-hyps (makeHyps observedData))
 
-;(define samples
-;    (mh-query 100 100
-   
-;        (equal? 'e ((car someHyps) 'c))
+(define test (list 'c 'q 'e 'c 'a 'q 'b 'a 'q 'b))
 
-;        (equal? 'c ((car someHyps) 'b))
-;    )
-;)
-
-;(hist samples)
-
-;(define eachHyps
-;   (lambda(data hypoth)
-;       (cond ((null? data) '()) 
-;             (#t (cons
-;                      (hypoth         (car data))
-;                      (eachHyps (cdr data) hypoth)
-;                 )
-;             )
-;       )
-;   )
-;) ;run through each observation.
-
-;(define tryHyps
-;   (lambda(data hypothilist)
-;       (cond ((null? hypothilist) '()) 
-;             (#t (append (eachHyps data (car hypothilist)) '(%) (tryHyps data (cdr hypothilist))))
-;       )
-;   )
-;)
-
-;(tryHyps observedData someHyps) ;try hypotheses.
+(define index-func (let ((count 0)) (lambda (val obs) 
+    (cond ( (null? obs) (quote ( ) ) )
+            ( #t (set! count (+ count 1)) (if (eq? val (car obs)) (cons count (index-func val (cdr obs))) (index-func val (cdr obs))))
+    )
+))
+)
+  
+(index-func 'q test)

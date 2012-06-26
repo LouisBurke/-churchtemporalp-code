@@ -34,14 +34,15 @@
     ) 
 )
 (define data (list 'a 'b))
+(define test (list 'c 'q 'e 'c 'a 'b 'a 'b))
 (define procedure (make-vector 1))
 
 (define patternBuild 
         (lambda (rules L) 
                  (cond ( (null? rules) (quote ( ) ) )
-                       ( #t (vector-set! procedure 0 (list ((car rules) L))) 
-                            (cons (remq '() (append (flatten (vector->list procedure)) L)) (patternBuild (cdr rules) (remq '() (append (flatten (vector->list procedure)) L)))
-                            )
+                       ( #t (let ([x (list ((car rules) L))])
+                            (cons (remq '() (append x L)) (patternBuild (cdr rules) (remq '() (append x L)))
+                            ))
                        )
                  )
 
@@ -50,5 +51,4 @@
 
 (last (patternBuild rules data))
 (patternBuildRepeat 5 data)
-
 

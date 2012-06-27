@@ -1,6 +1,25 @@
 #lang scheme
 (require (planet williams/science/random-source))
 
+(define count 
+       (lambda (a L) 
+                (cond ( (null? L)                                  0 ) 
+                      ( (equal? a (car L))  (+ 1 (count a (cdr L)) ) )
+                      ( else                      (count a (cdr L) ) )
+                )
+       )
+)
+
+(define occurences 
+        (lambda (L) 
+                (if  (null? L) (quote ( ) )
+                     (cons (list (car L)        (count (car L) L) )
+                            (occurences (remq (car L) (cdr L) ) )
+                     )
+                )    
+        )
+)
+
 (define (random-element list)
   (list-ref list (random (length list))))
 
@@ -27,35 +46,6 @@
 )
 
 (define data (list 'a 'b))
-
-(define count 
-       (lambda (a L) 
-                (cond ( (null? L)                                  0 ) 
-                      ( (equal? a (car L))  (+ 1 (count a (cdr L)) ) )
-                      ( else                      (count a (cdr L) ) )
-                )
-       )
-)
-
-(define occurences 
-        (lambda (L) 
-                (if  (null? L) (quote ( ) )
-                     (cons (list (car L)        (count (car L) L) )
-                            (occurences (remq (car L) (cdr L) ) )
-                     )
-                )    
-        )
-)
-
-(define particularValue 
-    (lambda(L char)
-        (cond 
-            ( (or (null? L) (null? char))         '() )
-            ( (eq? (car (car L))  char) (cdr (car L)) )
-            ( else     (particularValue (cdr L) char) )           
-        )
-    ) 
-)
 
 (define patternBuild 
         (lambda (rules L) 
@@ -93,4 +83,4 @@
 ))
 )
   
-(index-func 'q test)
+(index-func 'a observedData)

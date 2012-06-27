@@ -1,6 +1,15 @@
 #lang scheme
 (require (planet williams/science/random-source))
 
+(define rember
+        (lambda  (a L) 
+              (cond ((null? L)                           (quote () ) )
+                    ((equal? (car  L) a)      (rember  a  (cdr  L) ) ) 
+                    (else  (cons  (car  L)  (rember  a  (cdr  L) ) ) )
+              )
+        )
+)
+
 (define count 
        (lambda (a L) 
                 (cond ( (null? L)                                  0 ) 
@@ -12,9 +21,10 @@
 
 (define occurences 
         (lambda (L) 
-                (if  (null? L) (quote ( ) )
+                (if  (null? L) 
+                     (quote ( ) )
                      (cons (list (car L)        (count (car L) L) )
-                            (occurences (remq (car L) (cdr L) ) )
+                            (occurences (rember (car L) (cdr L) ) )
                      )
                 )    
         )
@@ -62,7 +72,7 @@
 ;(last (patternBuild rules data))
 (define observedData (patternBuildRepeat 5 data))
 
-;observedData
+observedData
 
 (define makeHyps
    (lambda(obs)
@@ -83,4 +93,13 @@
 ))
 )
   
-(index-func 'a observedData)
+(define positions (index-func 'a observedData))
+
+(define list-iter (lambda (obs-list value-pos)
+                      (if (eq? value-pos '()) (quote ( ))
+                      (cons (list-ref obs-list (car value-pos)) (list-iter obs-list (cdr value-pos)))
+    )
+))
+  
+(cdr positions)
+(occurences (list-iter observedData positions))

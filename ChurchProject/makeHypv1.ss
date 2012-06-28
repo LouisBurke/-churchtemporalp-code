@@ -70,9 +70,9 @@
 )
 
 ;(last (patternBuild rules data))
-(define observedData (patternBuildRepeat 5 data))
+(define observedData (patternBuildRepeat 100 data))
 
-observedData
+;observedData
 
 (define makeHyps
    (lambda(obs)
@@ -84,22 +84,38 @@ observedData
 
 (define some-hyps (makeHyps observedData))
 
-(define test (list 'c 'q 'e 'c 'a 'q 'b 'a 'q 'b))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define index-func (let ((count 0)) (lambda (val obs) 
     (cond ( (null? obs) (quote ( ) ) )
             ( #t (set! count (+ count 1)) (if (eq? val (car obs)) (cons count (index-func val (cdr obs))) (index-func val (cdr obs))))
     )
-))
-)
+)))
   
 (define positions (index-func 'a observedData))
 
 (define list-iter (lambda (obs-list value-pos)
                       (if (eq? value-pos '()) (quote ( ))
                       (cons (list-ref obs-list (car value-pos)) (list-iter obs-list (cdr value-pos)))
-    )
-))
-  
-(cdr positions)
+)))
+ 
 (occurences (list-iter observedData positions))
+
+(define frequencies (occurences (list-iter observedData positions)))
+
+(define high-freq (lambda (L) 
+        (cond ((null? L) (quote ( ) ) )
+              ((> (car (cdar L)) (cadadr (L))) (high-freq (cons (car L) (cddr L))) )
+              (#t (high-freq (cdr L))) 
+        ) 
+    )
+)
+
+;(car (cdr (car (cdr frequencies))))
+;(cadadr frequencies)
+
+;(cons (car frequencies) (cddr frequencies))
+
+(car (cdar frequencies))
+(cadadr frequencies)
+(high-freq frequencies) 

@@ -86,36 +86,33 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define index-func (let ((count 0)) (lambda (val obs) 
-    (cond ( (null? obs) (quote ( ) ) )
-            ( #t (set! count (+ count 1)) (if (eq? val (car obs)) (cons count (index-func val (cdr obs))) (index-func val (cdr obs))))
-    )
-)))
+;(define index-func (let ((count 0)) (lambda (val obs) 
+;    (cond ( (null? obs) (quote ( ) ) )
+;            ( #t (set! count (+ count 1)) (if (eq? val (car obs)) (cons count (index-func val (cdr obs))) (index-func val (cdr obs))))
+;    )
+;)))
   
-(define positions (index-func 'a observedData))
+;(define positions (index-func 'a observedData))
 
-(define list-iter (lambda (obs-list value-pos)
-                      (if (eq? value-pos '()) (quote ( ))
-                      (cons (list-ref obs-list (car value-pos)) (list-iter obs-list (cdr value-pos)))
-)))
+;(define list-iter (lambda (obs-list value-pos)
+;                      (if (eq? value-pos '()) (quote ( ))
+;                      (cons (list-ref obs-list (car value-pos)) (list-iter obs-list (cdr value-pos)))
+;)))
  
-(occurences (list-iter observedData positions))
+;(occurences (list-iter observedData positions))
 
-(define frequencies (occurences (list-iter observedData positions)))
+;(define frequencies (occurences (list-iter observedData positions)))
 
-(define high-freq (lambda (L) 
-        (cond ((null? L) (quote ( ) ) )
-              ((> (car (cdar L)) (cadadr (L))) (high-freq (cons (car L) (cddr L))) )
-              (#t (high-freq (cdr L))) 
-        ) 
+(define makeRandomRule
+    (lambda() 
+         (let ((antecedent (if (> 0.5 (random-real)) 1 2))
+               (consequent (if (> 0.5 (random-real)) 3 4))
+               (failure    5)   )
+          (list (lambda(x) (if (equal? x antecedent) consequent failure))
+                (list 'lambda '(x) (list 'if (list 'equal? 'x antecedent) consequent failure)))
+        )
     )
 )
 
-;(car (cdr (car (cdr frequencies))))
-;(cadadr frequencies)
-
-;(cons (car frequencies) (cddr frequencies))
-
-(car (cdar frequencies))
-(cadadr frequencies)
-(high-freq frequencies) 
+(define r (makeRandomRule) )
+( list r)

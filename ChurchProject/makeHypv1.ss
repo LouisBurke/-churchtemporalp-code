@@ -103,16 +103,74 @@
 
 ;(define frequencies (occurences (list-iter observedData positions)))
 
-(define makeRandomRule
-    (lambda() 
-         (let ((antecedent (if (> 0.5 (random-real)) 1 2))
-               (consequent (if (> 0.5 (random-real)) 3 4))
-               (failure    5)   )
-          (list (lambda(x) (if (equal? x antecedent) consequent failure))
-                (list 'lambda '(x) (list 'if (list 'equal? 'x antecedent) consequent failure)))
-        )
+;This function should either take or construct 
+;(define makeRandomRule
+;    (lambda() 
+;         (let ((antecedent (if (> 0.5 (random-real)) 1 2))
+;               (consequent (if (> 0.5 (random-real)) 3 4))
+;               (failure    5)   )
+;          (list (lambda(x) (if (equal? x antecedent) consequent failure))
+;                (list 'lambda '(x) (list 'if (list 'equal? 'x antecedent) consequent failure)))
+;        )
+;    )
+;)
+
+;(define r (makeRandomRule) )
+;( list r)
+
+;((car r) 1)
+
+;(define makeRandom
+;    (lambda()
+;        (let [(ante (if (> 0.5 (random-real)) 'and 'or))
+;              (conse (if (> 0.5 (random-real)) 'not 'nor))
+;              (z  5) ]
+;          (list (lambda() (and (> 1 0) (> 1 0)))) 
+;        )
+;    )
+;)
+
+;(define s (makeRandom) )
+;( list s)
+
+;((car s))
+
+;(define makeRandomRuleObs
+;    (lambda(obs) 
+;         (let ((antecedent (if (> 0.5 (random-real)) (random-element obs) (random-element obs)))
+;               (consequent (if (> 0.5 (random-real)) (random-element obs) (random-element obs)))
+;               (failure    (random-element obs))   )
+;          (list (lambda(x) (if (equal? x antecedent) consequent failure))
+;                (list 'lambda '(x) (list 'if (list 'equal? 'x antecedent) consequent failure)))
+;        )
+;    )
+;)
+
+(define makeRandomRuleLogic
+    (lambda(obs) 
+         (let ([ante1 (if (> 0.5 (random-real)) (random-element obs) (random-element obs))]
+               [ante2 (if (> 0.5 (random-real)) (random-element obs) (random-element obs))]
+               [conse1 (if (> 0.5 (random-real)) (random-element obs) (random-element obs))]
+               [conse2 (if (> 0.5 (random-real)) (random-element obs) (random-element obs))]
+               [failure (random-element obs)]
+               [logic-operator (if (> 0.5 (random-real)) (lambda (x y)  (or x y)) (lambda (x y)  (and x y)))])
+             (list (lambda(obs) (if (logic-operator (equal? (car obs) ante1) (equal? (cadr obs) ante2)) conse1 failure))
+             (list 'lambda '(obs) (list 'if (list logic-operator (list 'equal? (list 'car 'obs) ante1) (list 'equal? (list 'cadr 'obs) ante2)) conse1 failure)))
+         )
     )
 )
 
-(define r (makeRandomRule) )
-( list r)
+(define t (makeRandomRuleLogic observedData))
+(define u (makeRandomRuleLogic observedData))
+
+(list t)
+(list u)
+
+((car t) (list 'c 'a))
+((car u) (list 'c 'a))
+
+;(let ([logic-operator (if (> 0.5 (random-real)) (lambda (x y)  (or x y)) (lambda (x y)  (and x y)))])
+;          (list (logic-operator #t #f))
+;)
+;(if (or (equal? (car observedData) 'c) (equal? (cadr observedData) 'q)) 'b 'b)
+

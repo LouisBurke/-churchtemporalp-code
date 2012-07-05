@@ -33,6 +33,7 @@
 (define (random-element list)
   (list-ref list (random (length list))))
 
+;define the constraints of these rules.
 (define rules (list 
                    (lambda(curr) (if (eq? (first curr) 'a) 'b '())) ;1
                    (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));2
@@ -86,66 +87,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(define index-func (let ((count 0)) (lambda (val obs) 
-;    (cond ( (null? obs) (quote ( ) ) )
-;            ( #t (set! count (+ count 1)) (if (eq? val (car obs)) (cons count (index-func val (cdr obs))) (index-func val (cdr obs))))
-;    )
-;)))
-  
-;(define positions (index-func 'a observedData))
-
-;(define list-iter (lambda (obs-list value-pos)
-;                      (if (eq? value-pos '()) (quote ( ))
-;                      (cons (list-ref obs-list (car value-pos)) (list-iter obs-list (cdr value-pos)))
-;)))
- 
-;(occurences (list-iter observedData positions))
-
-;(define frequencies (occurences (list-iter observedData positions)))
-
-;This function should either take or construct 
-;(define makeRandomRule
-;    (lambda() 
-;         (let ((antecedent (if (> 0.5 (random-real)) 1 2))
-;               (consequent (if (> 0.5 (random-real)) 3 4))
-;               (failure    5)   )
-;          (list (lambda(x) (if (equal? x antecedent) consequent failure))
-;                (list 'lambda '(x) (list 'if (list 'equal? 'x antecedent) consequent failure)))
-;        )
-;    )
-;)
-
-;(define r (makeRandomRule) )
-;( list r)
-
-;((car r) 1)
-
-;(define makeRandom
-;    (lambda()
-;        (let [(ante (if (> 0.5 (random-real)) 'and 'or))
-;              (conse (if (> 0.5 (random-real)) 'not 'nor))
-;              (z  5) ]
-;          (list (lambda() (and (> 1 0) (> 1 0)))) 
-;        )
-;    )
-;)
-
-;(define s (makeRandom) )
-;( list s)
-
-;((car s))
-
-;(define makeRandomRuleObs
-;    (lambda(obs) 
-;         (let ((antecedent (if (> 0.5 (random-real)) (random-element obs) (random-element obs)))
-;               (consequent (if (> 0.5 (random-real)) (random-element obs) (random-element obs)))
-;               (failure    (random-element obs))   )
-;          (list (lambda(x) (if (equal? x antecedent) consequent failure))
-;                (list 'lambda '(x) (list 'if (list 'equal? 'x antecedent) consequent failure)))
-;        )
-;    )
-;)
-
 (define makeRandomRuleLogic
     (lambda(obs) 
          (let ([ante1 (if (> 0.5 (random-real)) (random-element obs) (random-element obs))]
@@ -164,8 +105,11 @@
                             [(> 0.5 (random-real)) (lambda (x)  (cdr x))]
                             [(> 0.5 (random-real)) (lambda (x)  (cddr x))]
                             [ #t (lambda (x)  (car x))])])
-             (list (lambda(obs) (if (logic-operator (equal? (reg-op1 obs) ante1) (equal? (reg-op2 obs) ante2)) conse1 failure))
-             (list 'lambda '(obs) (list 'if (list logic-operator (list 'equal? (list reg-op1 'obs) ante1) (list 'equal? (list reg-op2 'obs) ante2)) conse1 failure)))
+             (if (> 0.5 (random-real)) 
+                 (list (lambda(obs) (if (equal? (reg-op1 obs) ante1) conse1 failure))
+                 (list 'lambda '(obs) (list 'if (list 'equal? (list reg-op1 'obs) ante1) conse1 failure)))
+                 (list (lambda(obs) (if (logic-operator (equal? (reg-op1 obs) ante1) (equal? (reg-op2 obs) ante2)) conse1 failure))
+                 (list 'lambda '(obs) (list 'if (list logic-operator (list 'equal? (list reg-op1 'obs) ante1) (list 'equal? (list reg-op2 'obs) ante2)) conse1 failure))))
          )
     )
 )
@@ -179,18 +123,19 @@
     ) 
 )
 
-(define t (makeRandomRuleLogic observedData))
-(define u (makeRandomRuleLogic observedData))
+;(define t (makeRandomRuleLogic observedData))
+;(define u (makeRandomRuleLogic observedData))
 
-(list t)
-(list u)
+;(list t)
+;(list u)
 
-((car t) (list 'c 'a))
-((car u) (list 'c 'a))
+;((car t) (list 'c 'a))
+;((car u) (list 'c 'a))
 
-(define func-list (func-list-build 10 observedData))
+;(define func-list (func-list-build 10 observedData))
+(func-list-build 100 observedData)
 
-((car func-list) observedData)
+;((car func-list) observedData)
 
 ;(let ([logic-operator (if (> 0.5 (random-real)) (lambda (x y)  (or x y)) (lambda (x y)  (and x y)))])
 ;          (list (logic-operator #t #f))

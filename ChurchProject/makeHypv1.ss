@@ -153,11 +153,30 @@
                [conse1 (if (> 0.5 (random-real)) (random-element obs) (random-element obs))]
                [conse2 (if (> 0.5 (random-real)) (random-element obs) (random-element obs))]
                [failure (random-element obs)]
-               [logic-operator (if (> 0.5 (random-real)) (lambda (x y)  (or x y)) (lambda (x y)  (and x y)))])
-             (list (lambda(obs) (if (logic-operator (equal? (car obs) ante1) (equal? (cadr obs) ante2)) conse1 failure))
-             (list 'lambda '(obs) (list 'if (list logic-operator (list 'equal? (list 'car 'obs) ante1) (list 'equal? (list 'cadr 'obs) ante2)) conse1 failure)))
+               [logic-operator (if (> 0.5 (random-real)) (lambda (x y)  (or x y)) (lambda (x y)  (and x y)))]
+               [reg-op1 (cond
+                            [(> 0.5 (random-real)) (lambda (x)  (car x))]
+                            [(> 0.5 (random-real)) (lambda (x)  (cadr x))]
+                            [(> 0.5 (random-real)) (lambda (x)  (caddr x))]
+                            [ #t (lambda (x)  (car x))])]
+               [reg-op2 (cond
+                            [(> 0.5 (random-real)) (lambda (x)  (car x))]
+                            [(> 0.5 (random-real)) (lambda (x)  (cdr x))]
+                            [(> 0.5 (random-real)) (lambda (x)  (cddr x))]
+                            [ #t (lambda (x)  (car x))])])
+             (list (lambda(obs) (if (logic-operator (equal? (reg-op1 obs) ante1) (equal? (reg-op2 obs) ante2)) conse1 failure))
+             (list 'lambda '(obs) (list 'if (list logic-operator (list 'equal? (list reg-op1 'obs) ante1) (list 'equal? (list reg-op2 'obs) ante2)) conse1 failure)))
          )
     )
+)
+
+(define func-list-build 
+    (lambda(len obs)
+        (cond 
+            ((eq? len 0) '())
+            (#t (append (makeRandomRuleLogic obs) (func-list-build (- len 1) obs) ))
+        )
+    ) 
 )
 
 (define t (makeRandomRuleLogic observedData))
@@ -168,6 +187,10 @@
 
 ((car t) (list 'c 'a))
 ((car u) (list 'c 'a))
+
+(define func-list (func-list-build 10 observedData))
+
+((car func-list) observedData)
 
 ;(let ([logic-operator (if (> 0.5 (random-real)) (lambda (x y)  (or x y)) (lambda (x y)  (and x y)))])
 ;          (list (logic-operator #t #f))

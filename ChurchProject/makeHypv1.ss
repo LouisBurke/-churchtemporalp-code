@@ -124,17 +124,7 @@
     ) 
 )
 
-;(define t (makeRandomRuleLogic observedData))
-;(define u (makeRandomRuleLogic observedData))
-
-;(list t)
-;(list u)
-
-;((car t) (list 'c 'a))
-;((car u) (list 'c 'a))
-
-;(define func-list (func-list-build 10 observedData))
-(func-list-build 10 observedData)
+;(func-list-build 10 observedData)
 
 ;((car func-list) observedData)
 
@@ -149,10 +139,42 @@
     (lambda(obs n) (if (eq? obs 0) '() (cons  (list n (modulo obs 2)) (bit-list (truncate (/ obs 2)) (+ n 1)))))
 )
 
-(define bits (bit-list 4000 1))
-
 (define check-bit
     (lambda(obs n) (if (eq? (caar obs) n) (if (eq? (cadar obs) 1) #t #f) (check-bit (cdr obs) n)))
 )
+(bit-list 500 1)
+(check-bit (bit-list 500 1) 6)
 
-(check-bit bits 11)
+(define makeRandomRule
+    (lambda(L n) 
+         (let ([ante1 (random-element L)]
+               [ante2 (random-element L)]
+               [conse1 (random-element L)]
+               [conse2 (random-element L)]
+               [failure (random-element L)]
+               [logic-operator (cond
+                                   [(check-bit (bit-list n 1) 1) (lambda (x y)  (or x y))]
+                                   [(check-bit (bit-list n 1) 2) (lambda (x y)  (and x y))]
+                                   [(check-bit (bit-list n 1) 3) (lambda (x y)  (not x y))])]
+               [reg-op1 (cond
+                            [(check-bit (bit-list n 1) 4) (lambda (x)  (car x))]
+                            [(check-bit (bit-list n 1) 5) (lambda (x)  (cadr x))]
+                            [(check-bit (bit-list n 1) 6) (lambda (x)  (caddr x))]
+                            [ #t (lambda (x)  (car x))])]
+               [reg-op2 (cond
+                            [(check-bit (bit-list n 1) 7) (lambda (x)  (car x))]
+                            [(check-bit (bit-list n 1) 8) (lambda (x)  (cdr x))]
+                            [(check-bit (bit-list n 1) 9) (lambda (x)  (cddr x))]
+                            [ #t (lambda (x)  (car x))])])
+             (if (> 0.5 (random-real)) 
+                 (list (lambda(L) (if (equal? (reg-op1 L) ante1) conse1 failure));think recursively.
+                 (list 'lambda '(L) (list 'if (list 'equal? (list reg-op1 'L) ante1) conse1 failure)))
+                 (list (lambda(L) (if (logic-operator (equal? (reg-op1 L) ante1) (equal? (reg-op2 L) ante2)) conse1 failure))
+                 (list 'lambda '(L) (list 'if (list logic-operator (list 'equal? (list reg-op1 'L) ante1) (list 'equal? (list reg-op2 'L) ante2)) conse1 failure))))
+         )
+    )
+)
+
+(makeRandomRule observedData 1500)
+(makeRandomRule observedData 1000)
+(makeRandomRule observedData 2000)

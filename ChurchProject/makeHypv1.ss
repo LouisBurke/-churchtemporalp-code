@@ -33,7 +33,7 @@
 (define (random-element list)
   (list-ref list (random (length list))))
 
-;define the constraints of these rules.
+;define the constraints of these rules. -> this should mimic rules hypothis generator
 (define rules (list 
                    (lambda(curr) (if (eq? (first curr) 'a) 'b '())) ;1
                    (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));2
@@ -86,7 +86,7 @@
 (define some-hyps (makeHyps observedData))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;conbinatorics no same rules twice
 (define makeRandomRuleLogic
     (lambda(obs) 
          (let ([ante1 (if (> 0.5 (random-real)) (random-element obs) (random-element obs))]
@@ -106,7 +106,7 @@
                             [(> 0.5 (random-real)) (lambda (x)  (cddr x))]
                             [ #t (lambda (x)  (car x))])])
              (if (> 0.5 (random-real)) 
-                 (list (lambda(obs) (if (equal? (reg-op1 obs) ante1) conse1 failure))
+                 (list (lambda(obs) (if (equal? (reg-op1 obs) ante1) conse1 failure));think recursively.
                  (list 'lambda '(obs) (list 'if (list 'equal? (list reg-op1 'obs) ante1) conse1 failure)))
                  (list (lambda(obs) (if (logic-operator (equal? (reg-op1 obs) ante1) (equal? (reg-op2 obs) ante2)) conse1 failure))
                  (list 'lambda '(obs) (list 'if (list logic-operator (list 'equal? (list reg-op1 'obs) ante1) (list 'equal? (list reg-op2 'obs) ante2)) conse1 failure))))
@@ -114,6 +114,7 @@
     )
 )
 
+;1) make sure this all runs in church 2) mh-query 
 (define func-list-build 
     (lambda(len obs)
         (cond 
@@ -133,7 +134,7 @@
 ;((car u) (list 'c 'a))
 
 ;(define func-list (func-list-build 10 observedData))
-(func-list-build 100 observedData)
+(func-list-build 10 observedData)
 
 ;((car func-list) observedData)
 
@@ -142,3 +143,16 @@
 ;)
 ;(if (or (equal? (car observedData) 'c) (equal? (cadr observedData) 'q)) 'b 'b)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define bit-list 
+    (lambda(obs n) (if (eq? obs 0) '() (cons  (list n (modulo obs 2)) (bit-list (truncate (/ obs 2)) (+ n 1)))))
+)
+
+(define bits (bit-list 4000 1))
+
+(define check-bit
+    (lambda(obs n) (if (eq? (caar obs) n) (if (eq? (cadar obs) 1) #t #f) (check-bit (cdr obs) n)))
+)
+
+(check-bit bits 11)

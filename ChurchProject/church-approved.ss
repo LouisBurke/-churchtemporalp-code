@@ -30,12 +30,10 @@
         )
 )
 
-;Church Approved Start
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
 (define (random-element list)
-  (list-ref list (car (non-dec (round (* (random-real) (length list))) 1))));;This will cause a problem in Church.
+  (list-ref list (car (non-dec (round (* (random-real) (length list))) 1))))
 
 ;define the constraints of these rules. -> this should mimic rules hypothis generator
 (define rules (list 
@@ -74,15 +72,8 @@
         )
 )
 
-;(last (patternBuild rules data))
 (define observedData (patternBuildRepeat 100 data))
-;Church Approved End
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Church Approved Start
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;(* (- (/ obs 2.0) (floor (/ obs 2.0))) 2)
 (define bit-list 
     (lambda(obs n) (if (eq? obs 0) '() (cons  (list n (* (- (/ obs 2) (floor (/ obs 2))) 2)) (bit-list (truncate (/ obs 2)) (+ n 1)))))
 )
@@ -124,6 +115,3 @@
 )
 
 (makeRandomRule observedData 400)
-
-;Church Approved Start
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

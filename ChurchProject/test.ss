@@ -1,5 +1,4 @@
-#lang scheme
-(require (planet williams/science/random-source))
+
 
 (define rember
         (lambda  (a L) 

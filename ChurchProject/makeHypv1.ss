@@ -30,8 +30,12 @@
         )
 )
 
+;Church Approved Start
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
+
 (define (random-element list)
-  (list-ref list (random (length list))))
+  (list-ref list (car (non-dec (round (* (random-real) (length list))) 1))));;This will cause a problem in Church.
 
 ;define the constraints of these rules. -> this should mimic rules hypothis generator
 (define rules (list 
@@ -43,7 +47,7 @@
                    (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));6
                    (lambda(curr) (if (and (eq? (car curr) 'e) (eq? (cadr curr) 'c)) 'q '()));7
                    (lambda(curr) (if (and (eq? (first curr) 'c) (eq? (last curr) 'b)) 'a '()));8
-                   (lambda(curr) (if (and (eq? (car curr) 'q) (eq? (cadr curr) 'e)) (random-element curr) '()));9
+                   (lambda(curr) (if (and (eq? (car curr) 'q) (eq? (cadr curr) 'e)) (random-element curr) '()));;This will cause a problem in Church.
               )
 )
 
@@ -72,18 +76,19 @@
 
 ;(last (patternBuild rules data))
 (define observedData (patternBuildRepeat 100 data))
-
+;Church Approved End
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;observedData
 
-(define makeHyps
-   (lambda(obs)
-      (cond ( (null? obs) '() )
-            (#t (cons (lambda(curr) (if (equal? curr (car obs)) (list (if (equal? (cdr obs) '()) '(X) (cadr obs))) '(X))) (makeHyps (cdr obs))))
-      )
-   )
-)
+;(define makeHyps
+;   (lambda(obs)
+;      (cond ( (null? obs) '() )
+;            (#t (cons (lambda(curr) (if (equal? curr (car obs)) (list (if (equal? (cdr obs) '()) '(X) (cadr obs))) '(X))) (makeHyps (cdr obs))))
+;      )
+;   )
+;)
 
-(define some-hyps (makeHyps observedData))
+;(define some-hyps (makeHyps observedData))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;conbinatorics no same rules twice
@@ -124,19 +129,12 @@
     ) 
 )
 
-;(func-list-build 10 observedData)
-
-;((car func-list) observedData)
-
-;(let ([logic-operator (if (> 0.5 (random-real)) (lambda (x y)  (or x y)) (lambda (x y)  (and x y)))])
-;          (list (logic-operator #t #f))
-;)
-;(if (or (equal? (car observedData) 'c) (equal? (cadr observedData) 'q)) 'b 'b)
-
+;Church Approved Start
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;(* (- (/ obs 2.0) (floor (/ obs 2.0))) 2)
 (define bit-list 
-    (lambda(obs n) (if (eq? obs 0) '() (cons  (list n (modulo obs 2)) (bit-list (truncate (/ obs 2)) (+ n 1)))))
+    (lambda(obs n) (if (eq? obs 0) '() (cons  (list n (* (- (/ obs 2) (floor (/ obs 2))) 2)) (bit-list (truncate (/ obs 2)) (+ n 1)))))
 )
 
 (define check-bit
@@ -144,6 +142,9 @@
 )
 (bit-list 500 1)
 (check-bit (bit-list 500 1) 6)
+
+;Church Approved End
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define makeRandomRule
     (lambda(L n) 

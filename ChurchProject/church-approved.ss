@@ -48,7 +48,7 @@
 )
 
 ;define the constraints of these rules. -> this should mimic rules hypothis generator
-(define rules (list 
+#|(define rules (list 
                    (lambda(curr) (if (eq? (first curr) 'a) 'b '())) ;1
                    (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));2
                    (lambda(curr) (if (eq? (car curr) 'b) 'a '()));3
@@ -59,7 +59,7 @@
                    (lambda(curr) (if (and (eq? (first curr) 'c) (eq? (last curr) 'b)) 'a '()));8
                    (lambda(curr) (if (and (eq? (car curr) 'q) (eq? (cadr curr) 'e)) (random-element curr) '()))
               )
-)
+)|#
 
 (define makeRules
     (lambda(L n) 
@@ -70,18 +70,18 @@
                ;[failure (random-element L)]
                [div 3]
                [logic-operator (cond
-                                   [(modulo-n n 3) (lambda (x y)  (or x y))]; needs some thought. Modulo concept. For 3 exclusive choices.
-                                   [(modulo-n n 3) (lambda (x y)  (and x y))]
-                                   [(modulo-n n 3) (lambda (x y)  (not x y))])];not x y
+                                   [(modulo-n n 2) (lambda X (apply or X))]; needs some thought. Modulo concept. For 3 exclusive choices.
+                                   [(modulo-n n 2) (lambda X (apply and X))])]
+                                   ;[(modulo-n n 3) (lambda (x y)  (not x y))])];not x y
                [reg-op1 (cond
-                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (car x))];result of division
-                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (cadr x))]
-                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (caddr x))])]
+                            [(modulo-n n (recursive-divide n '(2))) (lambda (x)  (car x))];result of division
+                            [(modulo-n n (recursive-divide n '(2))) (lambda (x)  (cadr x))]
+                            [(modulo-n n (recursive-divide n '(2))) (lambda (x)  (caddr x))])]
                [reg-op2 (cond
-                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (car x))]
-                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (cdr x))]
-                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (cddr x))])])
-             (if (modulo-n n (recursive-divide n '(3 3 1))) 
+                            [(modulo-n n (recursive-divide n '(2 3))) (lambda (x)  (car x))]
+                            [(modulo-n n (recursive-divide n '(2 3))) (lambda (x)  (cdr x))]
+                            [(modulo-n n (recursive-divide n '(2 3))) (lambda (x)  (cddr x))])])
+             (if (modulo-n n (recursive-divide n '(2 3 1))) 
                  (list (lambda(L) (if (equal? (reg-op1 L) (random-element L)) conse1 failure));think recursively.
                  (list 'lambda '(L) (list 'if (list 'equal? (list reg-op1 'L) ante1) conse1 failure)))
                  (list (lambda(L) (if (logic-operator (equal? (reg-op1 L) ante1) (equal? (reg-op2 L) ante2)) conse1 failure))

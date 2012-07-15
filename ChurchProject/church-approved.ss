@@ -35,6 +35,18 @@
 (define (random-element list)
   (list-ref list (car (non-dec (round (* (random-real) (length list))) 1))))
 
+(define bit-list 
+    (lambda(obs n) (if (eq? obs 0) '() (cons  (list n (* (- (/ obs 2) (floor (/ obs 2))) 2)) (bit-list (truncate (/ obs 2)) (+ n 1)))))
+)
+
+(define modulo-n 
+    (lambda(num numerate) (* (- (/ num numerate) (floor (/ num numerate))) numerate))
+)
+
+(define check-bit
+    (lambda(obs n) (if (eq? (caar obs) n) (if (eq? (cadar obs) 1) #t #f) (check-bit (cdr obs) n)))
+)
+
 ;define the constraints of these rules. -> this should mimic rules hypothis generator
 (define rules (list 
                    (lambda(curr) (if (eq? (first curr) 'a) 'b '())) ;1
@@ -45,9 +57,39 @@
                    (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));6
                    (lambda(curr) (if (and (eq? (car curr) 'e) (eq? (cadr curr) 'c)) 'q '()));7
                    (lambda(curr) (if (and (eq? (first curr) 'c) (eq? (last curr) 'b)) 'a '()));8
-                   (lambda(curr) (if (and (eq? (car curr) 'q) (eq? (cadr curr) 'e)) (random-element curr) '()));;This will cause a problem in Church.
+                   (lambda(curr) (if (and (eq? (car curr) 'q) (eq? (cadr curr) 'e)) (random-element curr) '()))
               )
 )
+
+(define makeRules
+    (lambda(L n) 
+         (let (;[ante1 (random-element L)]
+               ;[ante2 (random-element L)]
+               ;[conse1 (random-element L)]
+               ;[conse2 (random-element L)]
+               ;[failure (random-element L)]
+               [div 3]
+               [logic-operator (cond
+                                   [(modulo-n n 3) (lambda (x y)  (or x y))]; needs some thought. Modulo concept. For 3 exclusive choices.
+                                   [(modulo-n n 3) (lambda (x y)  (and x y))]
+                                   [(modulo-n n 3) (lambda (x y)  (not x y))])];not x y
+               [reg-op1 (cond
+                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (car x))];result of division
+                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (cadr x))]
+                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (caddr x))])]
+               [reg-op2 (cond
+                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (car x))]
+                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (cdr x))]
+                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (cddr x))])])
+             (if (modulo-n n (recursive-divide n '(3 3 1))) 
+                 (list (lambda(L) (if (equal? (reg-op1 L) (random-element L)) conse1 failure));think recursively.
+                 (list 'lambda '(L) (list 'if (list 'equal? (list reg-op1 'L) ante1) conse1 failure)))
+                 (list (lambda(L) (if (logic-operator (equal? (reg-op1 L) ante1) (equal? (reg-op2 L) ante2)) conse1 failure))
+                 (list 'lambda '(L) (list 'if (list logic-operator (list 'equal? (list reg-op1 'L) ante1) (list 'equal? (list reg-op2 'L) ante2)) conse1 failure))))
+         )
+    )
+)
+
 
 (define patternBuildRepeat 
     (lambda(len data)
@@ -74,15 +116,7 @@
 
 (define observedData (patternBuildRepeat 100 data))
 
-(define bit-list 
-    (lambda(obs n) (if (eq? obs 0) '() (cons  (list n (* (- (/ obs 2) (floor (/ obs 2))) 2)) (bit-list (truncate (/ obs 2)) (+ n 1)))))
-)
-
-(define check-bit
-    (lambda(obs n) (if (eq? (caar obs) n) (if (eq? (cadar obs) 1) #t #f) (check-bit (cdr obs) n)))
-)
-(bit-list 400 1)
-(check-bit (bit-list 400 1) 6)
+(define recursive-divide (lambda (n L) (if (null? L ) (/ n 1) (/ (recursive-divide n (cdr L)) (car L)))))
 
 (define makeRandomRule
     (lambda(L n) 
@@ -91,21 +125,20 @@
                [conse1 (random-element L)]
                [conse2 (random-element L)]
                [failure (random-element L)]
+               [div 3]
                [logic-operator (cond
-                                   [(check-bit (bit-list n 1) 1) (lambda (x y)  (or x y))]
-                                   [(check-bit (bit-list n 1) 2) (lambda (x y)  (and x y))]
-                                   [(check-bit (bit-list n 1) 3) (lambda (x y)  (not x y))])]
+                                   [(modulo-n n 3) (lambda (x y)  (or x y))]; needs some thought. Modulo concept. For 3 exclusive choices.
+                                   [(modulo-n n 3) (lambda (x y)  (and x y))]
+                                   [(modulo-n n 3) (lambda (x y)  (not x y))])];not x y
                [reg-op1 (cond
-                            [(check-bit (bit-list n 1) 4) (lambda (x)  (car x))]
-                            [(check-bit (bit-list n 1) 5) (lambda (x)  (cadr x))]
-                            [(check-bit (bit-list n 1) 6) (lambda (x)  (caddr x))]
-                            [ #t (lambda (x)  (car x))])]
+                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (car x))];result of division
+                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (cadr x))]
+                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (caddr x))])]
                [reg-op2 (cond
-                            [(check-bit (bit-list n 1) 7) (lambda (x)  (car x))]
-                            [(check-bit (bit-list n 1) 8) (lambda (x)  (cdr x))]
-                            [(check-bit (bit-list n 1) 9) (lambda (x)  (cddr x))]
-                            [ #t (lambda (x)  (car x))])])
-             (if (> 0.5 (random-real)) 
+                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (car x))]
+                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (cdr x))]
+                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (cddr x))])])
+             (if (modulo-n n (recursive-divide n '(3 3 1))) 
                  (list (lambda(L) (if (equal? (reg-op1 L) ante1) conse1 failure));think recursively.
                  (list 'lambda '(L) (list 'if (list 'equal? (list reg-op1 'L) ante1) conse1 failure)))
                  (list (lambda(L) (if (logic-operator (equal? (reg-op1 L) ante1) (equal? (reg-op2 L) ante2)) conse1 failure))
@@ -114,4 +147,13 @@
     )
 )
 
-(makeRandomRule observedData 400)
+(define func-list-build 
+    (lambda(len obs num)
+        (cond 
+            ((eq? len 0) '())
+            (#t (append (makeRandomRule obs num) (func-list-build (- len 1) obs num) ))
+        )
+    ) 
+)
+
+(func-list-build 2 observedData 1024)

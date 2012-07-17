@@ -33,7 +33,7 @@
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
 (define (random-element list)
-  (list-ref list (car (non-dec (round (* (random-real) (length list))) 1))))
+  (list-ref list (car (non-dec (floor (* (random-real) (length list))) 0))))
 
 (define bit-list 
     (lambda(obs n) (if (eq? obs 0) '() (cons  (list n (* (- (/ obs 2) (floor (/ obs 2))) 2)) (bit-list (truncate (/ obs 2)) (+ n 1)))))
@@ -47,49 +47,57 @@
     (lambda(obs n) (if (eq? (caar obs) n) (if (eq? (cadar obs) 1) #t #f) (check-bit (cdr obs) n)))
 )
 
-;define the constraints of these rules. -> this should mimic rules hypothis generator
-#|(define rules (list 
-                   (lambda(curr) (if (eq? (first curr) 'a) 'b '())) ;1
-                   (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));2
-                   (lambda(curr) (if (eq? (car curr) 'b) 'a '()));3
-                   (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));4
-                   (lambda(curr) (if (and (eq? (car curr) 'a) (eq? (cadr curr) 'b)) 'c '()));5
-                   (lambda(curr) (if (> (length curr) 3) (if (and (eq? (first curr) 'c) (eq? (second curr) 'a) (eq? (third curr) 'b)) 'e '()) '()));6
-                   (lambda(curr) (if (and (eq? (car curr) 'e) (eq? (cadr curr) 'c)) 'q '()));7
-                   (lambda(curr) (if (and (eq? (first curr) 'c) (eq? (last curr) 'b)) 'a '()));8
-                   (lambda(curr) (if (and (eq? (car curr) 'q) (eq? (cadr curr) 'e)) (random-element curr) '()))
-              )
-)|#
+(define recursive-divide (lambda (n L) (if (null? L ) (/ n 1) (/ (recursive-divide n (cdr L)) (car L)))))
+
+(define recursive-and (lambda (X) (if (null? X) '() (and (car X) (recursive-and (cdr X))))))
+
+(define recursive-or (lambda (X) (if (null? X) '() (or (car X) (recursive-or (cdr X))))))
 
 (define makeRules
     (lambda(L n) 
-         (let (;[ante1 (random-element L)]
-               ;[ante2 (random-element L)]
-               ;[conse1 (random-element L)]
-               ;[conse2 (random-element L)]
-               ;[failure (random-element L)]
-               [div 3]
-               [logic-operator (cond
-                                   [(modulo-n n 2) (lambda X (apply or X))]; needs some thought. Modulo concept. For 3 exclusive choices.
-                                   [(modulo-n n 2) (lambda X (apply and X))])]
-                                   ;[(modulo-n n 3) (lambda (x y)  (not x y))])];not x y
+         (let ([logic-operator (cond
+                                   [(= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))]
+                                   [(= 1 (modulo-n n 2)) (lambda (x)  (recursive-and x))])]
                [reg-op1 (cond
-                            [(modulo-n n (recursive-divide n '(2))) (lambda (x)  (car x))];result of division
-                            [(modulo-n n (recursive-divide n '(2))) (lambda (x)  (cadr x))]
-                            [(modulo-n n (recursive-divide n '(2))) (lambda (x)  (caddr x))])]
+                            [(= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))]
+                            [(= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x))]
+                            [(= 2 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (caddr x))])]
                [reg-op2 (cond
-                            [(modulo-n n (recursive-divide n '(2 3))) (lambda (x)  (car x))]
-                            [(modulo-n n (recursive-divide n '(2 3))) (lambda (x)  (cdr x))]
-                            [(modulo-n n (recursive-divide n '(2 3))) (lambda (x)  (cddr x))])])
-             (if (modulo-n n (recursive-divide n '(2 3 1))) 
-                 (list (lambda(L) (if (equal? (reg-op1 L) (random-element L)) conse1 failure));think recursively.
-                 (list 'lambda '(L) (list 'if (list 'equal? (list reg-op1 'L) ante1) conse1 failure)))
-                 (list (lambda(L) (if (logic-operator (equal? (reg-op1 L) ante1) (equal? (reg-op2 L) ante2)) conse1 failure))
-                 (list 'lambda '(L) (list 'if (list logic-operator (list 'equal? (list reg-op1 'L) ante1) (list 'equal? (list reg-op2 'L) ante2)) conse1 failure))))
+                            [(= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))]
+                            [(= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x))]
+                            [(= 2 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadddr x))])])
+             (cond [(= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
+                 (list (lambda(L) 
+                         (if (equal? (reg-op1 L) (random-element L)) (random-element L) (random-element L)))
+                 #|(list 'lambda '(L) 
+                       (list 'if 
+                             (list 'equal? (list reg-op1 'L) (random-element L)) (random-element L) (random-element L)))|#)] 
+                   [(= 1 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2)) 
+                 (list (lambda(L) 
+                         (if 
+                          (logic-operator (list (equal? (reg-op1 L) (random-element L)) (equal? (reg-op2 L) (random-element L)))) (random-element L) (random-element L)))
+                 #|(list 'lambda '(L) 
+                       (list 'if 
+                             (list logic-operator 
+                                   (list 'list 
+                                         (list 'equal? 
+                                               (list reg-op1 'L) (random-element L)) 
+                                         (list 'equal? (list reg-op2 'L) (random-element L)))) (random-element L) (random-element L)))|#)])
          )
     )
 )
+(define data (list 'a 'b 'c 'd 'e 'q))
 
+(define makeRulesRepeat 
+    (lambda(num data)
+        (cond 
+            ((eq? num 0) '())
+            (#t (let ([x (last (makeRules data num))] ) (list x (makeRulesRepeat (- num 1) data))))
+        )
+    ) 
+)
+
+(define rules (flatten (makeRulesRepeat 50 data)))
 
 (define patternBuildRepeat 
     (lambda(len data)
@@ -99,8 +107,6 @@
         )
     ) 
 )
-
-(define data (list 'a 'b))
 
 (define patternBuild 
         (lambda (rules L) 
@@ -114,46 +120,53 @@
         )
 )
 
+;(patternBuildRepeat 100 data)
 (define observedData (patternBuildRepeat 100 data))
-
-(define recursive-divide (lambda (n L) (if (null? L ) (/ n 1) (/ (recursive-divide n (cdr L)) (car L)))))
 
 (define makeRandomRule
     (lambda(L n) 
-         (let ([ante1 (random-element L)]
-               [ante2 (random-element L)]
-               [conse1 (random-element L)]
-               [conse2 (random-element L)]
-               [failure (random-element L)]
-               [div 3]
-               [logic-operator (cond
-                                   [(modulo-n n 3) (lambda (x y)  (or x y))]; needs some thought. Modulo concept. For 3 exclusive choices.
-                                   [(modulo-n n 3) (lambda (x y)  (and x y))]
-                                   [(modulo-n n 3) (lambda (x y)  (not x y))])];not x y
+         (let ([logic-operator (cond
+                                   [(= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))]
+                                   [(= 1 (modulo-n n 2)) (lambda (x)  (recursive-and x))])]
                [reg-op1 (cond
-                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (car x))];result of division
-                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (cadr x))]
-                            [(modulo-n n (recursive-divide n '(3))) (lambda (x)  (caddr x))])]
+                            [(= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))]
+                            [(= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x))]
+                            [(= 2 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (caddr x))])]
                [reg-op2 (cond
-                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (car x))]
-                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (cdr x))]
-                            [(modulo-n n (recursive-divide n '(3 3))) (lambda (x)  (cddr x))])])
-             (if (modulo-n n (recursive-divide n '(3 3 1))) 
-                 (list (lambda(L) (if (equal? (reg-op1 L) ante1) conse1 failure));think recursively.
-                 (list 'lambda '(L) (list 'if (list 'equal? (list reg-op1 'L) ante1) conse1 failure)))
-                 (list (lambda(L) (if (logic-operator (equal? (reg-op1 L) ante1) (equal? (reg-op2 L) ante2)) conse1 failure))
-                 (list 'lambda '(L) (list 'if (list logic-operator (list 'equal? (list reg-op1 'L) ante1) (list 'equal? (list reg-op2 'L) ante2)) conse1 failure))))
+                            [(= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cdr x))]
+                            [(= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cddr x))]
+                            [(= 2 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cdddr x))])])
+             (cond [(= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
+                 (list (lambda(L) 
+                         (if (equal? (reg-op1 L) (random-element L)) (random-element L) (random-element L)))
+                 (list 'lambda '(L) 
+                       (list 'if 
+                             (list 'equal? (list reg-op1 'L) (random-element L)) (random-element L) (random-element L))))] 
+                   [(= 1 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2)) 
+                 (list (lambda(L) 
+                         (if 
+                          (logic-operator (list (equal? (reg-op1 L) (random-element L)) (equal? (reg-op2 L) (random-element L)))) (random-element L) (random-element L)))
+                 (list 'lambda '(L) 
+                       (list 'if 
+                             (list logic-operator 
+                                   (list 'list 
+                                         (list 'equal? 
+                                               (list reg-op1 'L) (random-element L)) 
+                                         (list 'equal? (list reg-op2 'L) (random-element L)))) (random-element L) (random-element L))))])
          )
     )
 )
 
 (define func-list-build 
-    (lambda(len obs num)
+    (lambda(num obs)
         (cond 
-            ((eq? len 0) '())
-            (#t (append (makeRandomRule obs num) (func-list-build (- len 1) obs num) ))
+            ((eq? num 0) '())
+            (#t (append (makeRandomRule obs num) (func-list-build (- num 1) obs) ))
         )
     ) 
 )
 
-(func-list-build 2 observedData 1024)
+(func-list-build 1024 observedData)
+
+
+

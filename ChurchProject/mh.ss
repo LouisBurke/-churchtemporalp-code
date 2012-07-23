@@ -32,12 +32,12 @@
 (define makeRules
     (lambda(L n) 
          (letrec ([logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x)) (lambda (x)  (recursive-and x)))]
-               [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x)) 
-                            (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x)) 
-                                (lambda (x)  (caddr x))))]
-               [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))
-                            (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x))
-                                (lambda (x)  (cadddr x))))])
+                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x)) 
+                               (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x)) 
+                                   (lambda (x)  (caddr x))))]
+                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))
+                               (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x))
+                                   (lambda (x)  (cadddr x))))])
              (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
                  (list (lambda(X) 
                          (if (equal? (reg-op1 X) (random-element L)) (random-element L) (random-element L)))) 
@@ -107,18 +107,32 @@
     (lambda(num obs)
         (if  (eq? num 0) '() (append (makeRandomRule obs num) (func-list-build (- num 1) obs) )
         )
+    )
+)
+
+;(define functions (func-list-build 1024 observedData))
+
+;(define obs-length (length observedData))
+
+(define patternBuildRepeat
+    (lambda(len data)
+        (if (eq? len 0) '() (cons (last (patternBuild rules data)) (patternBuildRepeat (- len 1) (last (patternBuild rules data)))))
     ) 
 )
 
-(define functions (func-list-build 1024 observedData))
-
-(define obs-length (length observedData))
+(define patternBuild 
+        (lambda (rules L) 
+                 (if (null? rules) (quote ( ) )
+                     (cons (remq '() (append (list ((car rules) L)) L)) (patternBuild (cdr rules) (remq '() (remq '() (append (list ((car rules) L)) L)))))
+                 )
+        )
+)
 
 (define samples
   (mh-query
      10 10
 
-     (define rules-list (makeRandomRule observedData 27))
+     (define rules-list (func-list-build 27 observedData))
 
      rules-list
      

@@ -65,7 +65,19 @@
 (define patternBuild 
         (lambda (rules L) 
                  (if (null? rules) (quote ( ) )
-                     (cons (remq '() (append (list ((car rules) L)) L)) (patternBuild (cdr rules) (remq '() (remq '() (append (list ((car rules) L)) L)))))
+                     (letrec ([rule (random-element rules)])
+                         (cons (remq '() (append (list (rule L)) L)) (patternBuild (remq rule rules) (remq '() (remq '() (append (list (rule L)) L)))))
+                     )
+                 )
+        )
+)
+
+(define patternBuild-repeat-n 
+        (lambda (n rules L) 
+                 (if (= 0 n) '()
+                     (letrec ([rule (random-element rules)])
+                         (cons (remq '() (append (list (rule L)) L)) (patternBuild (- n 1) rules (remq '() (remq '() (append (list (rule L)) L)))))
+                     )
                  )
         )
 )
@@ -135,11 +147,13 @@
     ) 
 )
 
-(define rules (flatten (makeRulesRepeat 100000 data)))
+(define rules (flatten (makeRulesRepeat 1000000 data)))
 
-(define rules-50 (pick-n-rand-rules 50 rules))
+(define rules-n (pick-n-rand-rules 4 rules))
 
-(define observedData (flatten (patternBuild rules-50 data)))
+(define observedData (flatten (patternBuild-repeat-n 20 rules-n data)))
+
+(list observedData)
 
 #|(define makeRandomRule
     (lambda(L n) 
@@ -161,13 +175,13 @@
                            (lambda (x)  (cadddr x))))])                                                                  ; mod 3 = 2
              (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
                  (list (lambda(X) 
-                         (if (equal? (reg-op1 X) A) B (random-element L))))                                              ; mod 2 = 0
+                         (if (equal? (reg-op1 X) A) B C)))                                              ; mod 2 = 0
                  (list (lambda(X)
                          (if 
-                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F (random-element L))))) ; mod 2 = 1
+                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G)))) ; mod 2 = 1
          )
     )
-)|#
+)
 
 (define makeRandomRule
     (lambda(L n) 
@@ -195,22 +209,21 @@
     )
 )
 
-(define hypothesis (flip 0.999))
-
-(define rules-list (func-list-build 50 observedData))
+(define rules-list (func-list-build 4 observedData))
 
 (define samples
   (mh-query
-     2500 10
+     250 10
 
-     (equal? observedData (flatten (patternBuild rules-list data)))
+     (equal? observedData (flatten (patternBuild-repeat-n 20 rules-list data)))
 
      #t
    )
 )
 
-(occurences samples)
+(occurences samples)|#
 
 ;(list rules-list)
 
-;(flatten (patternBuild rules-list data))
+;(eq? (length observedData) (length (flatten (patternBuild rules-list data))))
+

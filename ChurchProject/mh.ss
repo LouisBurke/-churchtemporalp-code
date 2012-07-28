@@ -1,3 +1,6 @@
+#lang scheme
+(require (planet williams/science/random-source))
+
 (define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
@@ -75,8 +78,9 @@
 (define patternBuild-repeat-n 
         (lambda (n rules L) 
                  (if (= 0 n) '()
-                     (letrec ([rule (random-element rules)])
-                         (cons (remq '() (append (list (rule L)) L)) (patternBuild (- n 1) rules (remq '() (remq '() (append (list (rule L)) L)))))
+                     (letrec ([rule (random-element rules)]
+                              [aug (flatten (append (list (rule L) L)))])
+                         (append (list aug) (patternBuild-repeat-n (- n 1) rules aug))
                      )
                  )
         )
@@ -147,13 +151,16 @@
     ) 
 )
 
-(define rules (flatten (makeRulesRepeat 1000000 data)))
+(define rules (flatten (makeRulesRepeat 100 data)))
 
 (define rules-n (pick-n-rand-rules 4 rules))
 
-(define observedData (flatten (patternBuild-repeat-n 20 rules-n data)))
+(define observedData (last (patternBuild-repeat-n 100 rules-n data)))
 
-(list observedData)
+(length observedData)
+;(list observedData)
+
+;(append (list ((car rules-n) data) data))
 
 #|(define makeRandomRule
     (lambda(L n) 

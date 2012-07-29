@@ -1,7 +1,4 @@
-#lang scheme
-(require (planet williams/science/random-source))
-
-(define rember
+<	(define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
                     ((equal? (car  L) a)      (rember  a  (cdr  L) ) ) 
@@ -252,7 +249,15 @@
     )
 )
 
-(define rules-list (func-list-build 314 observedData))
+
+(define func-list-build-from-list 
+    (lambda(obs L)
+        (if  (null? L) '() (append (makeRandomRule obs (car L)) (func-list-build-from-list  obs (cdr L)) )
+        )
+    )
+)
+
+(define rules-list (func-list-build-from-list  observedData (list 10077696 77696) ))
 
 ;(patternBuild-repeat-n 20 rules-list data)
 

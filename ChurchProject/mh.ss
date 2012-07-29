@@ -1,6 +1,3 @@
-#lang scheme
-(require (planet williams/science/random-source))
-
 (define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
@@ -68,7 +65,8 @@
 (define patternBuild 
         (lambda (rules L) 
                  (if (null? rules) (quote ( ) )
-                     (letrec ([rule (random-element rules)])
+                     (letrec ([rule (random-element rules)]
+                              [aug (flatten (append (list (rule L) L)))])
                          (cons (remq '() (append (list (rule L)) L)) (patternBuild (remq rule rules) (remq '() (remq '() (append (list (rule L)) L)))))
                      )
                  )
@@ -118,7 +116,7 @@
 (define makeRules
     (lambda(L n) 
          (letrec (
-                  [A (random-element L)]
+                  [A (random-element L)];these shouldn't be random
                   [B (random-element L)]
                   [C (random-element L)]
                   [D (random-element L)]
@@ -151,18 +149,18 @@
     ) 
 )
 
-(define rules (flatten (makeRulesRepeat 100 data)))
+(define rules (flatten (makeRulesRepeat 1000 data)))
 
 (define rules-n (pick-n-rand-rules 4 rules))
 
 (define observedData (last (patternBuild-repeat-n 100 rules-n data)))
 
-(length observedData)
+;(length observedData)
 ;(list observedData)
 
 ;(append (list ((car rules-n) data) data))
 
-#|(define makeRandomRule
+(define makeRandomRule
     (lambda(L n) 
          (letrec (
                   [A (random-element L)]
@@ -182,15 +180,15 @@
                            (lambda (x)  (cadddr x))))])                                                                  ; mod 3 = 2
              (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
                  (list (lambda(X) 
-                         (if (equal? (reg-op1 X) A) B C)))                                              ; mod 2 = 0
+                         (if (equal? (reg-op1 X) A) B C)))                                                               ; mod 2 = 0
                  (list (lambda(X)
                          (if 
-                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G)))) ; mod 2 = 1
+                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G))))                  ; mod 2 = 1
          )
     )
 )
 
-(define makeRandomRule
+#|(define makeRandomRule
     (lambda(L n) 
          (letrec ([logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x)) (lambda (x)  (recursive-and x)))]
                   [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x)) 
@@ -207,7 +205,7 @@
                           (logic-operator (list (equal? (reg-op1 X) (random-element L)) (equal? (reg-op2 X) (random-element L)))) (random-element L) (random-element L)))))
          )
     )
-)
+)|#
 
 (define func-list-build 
     (lambda(num obs)
@@ -218,11 +216,15 @@
 
 (define rules-list (func-list-build 4 observedData))
 
-(define samples
-  (mh-query
-     250 10
+;(patternBuild-repeat-n 20 rules-list data)
 
-     (equal? observedData (flatten (patternBuild-repeat-n 20 rules-list data)))
+(list observedData 'break (last (patternBuild-repeat-n 100 (pick-n-rand-rules 4 rules-list) data)))
+
+#|(define samples
+  (mh-query
+     10000 10
+
+     (equal? observedData (last (patternBuild-repeat-n 100 (pick-n-rand-rules 4 rules-list) data)))
 
      #t
    )

@@ -1,5 +1,4 @@
-#lang scheme
-(require (planet williams/science/random-source))
+
 ;works on bher
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 

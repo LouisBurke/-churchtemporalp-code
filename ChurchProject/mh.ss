@@ -1,4 +1,7 @@
-<	(define rember
+#lang scheme
+(require (planet williams/science/random-source))
+
+(define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
                     ((equal? (car  L) a)      (rember  a  (cdr  L) ) ) 
@@ -257,11 +260,11 @@
     )
 )
 
-(define rules-list (func-list-build-from-list  observedData (list 10077696 77696) ))
+(define rules-list (func-list-build 3000 observedData))
 
 ;(patternBuild-repeat-n 20 rules-list data)
 
-(list observedData 'break (last (patternBuild-repeat-n 100 (pick-n-rand-rules 4 rules-list) data)))
+(list observedData 'break (last (patternBuild-repeat-n 100 (pick-n-rand-rules 20 rules-list) data)))
 
 #|(define samples
   (mh-query

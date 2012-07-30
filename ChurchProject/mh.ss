@@ -144,7 +144,8 @@
     )
 )
 
-(define data (list 'a 'b 'c 'd 'e 'q))
+;(define data (list 'a 'b 'c 'd 'e 'q))
+(define data (list 'a 'b 'c))
 
 (define makeRulesRepeat
     (lambda(num data)
@@ -163,7 +164,7 @@
 
 ;(append (list ((car rules-n) data) data))
 
-(define makeRandomRule
+#|(define makeRandomRule
     (lambda(L n) 
          (letrec (
                   [eventA (if (= 0 (modulo-n n 6)) 'a            
@@ -226,7 +227,7 @@
     )
 )
 
-#|(define makeRandomRule
+(define makeRandomRule
     (lambda(L n) 
          (letrec ([logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x)) (lambda (x)  (recursive-and x)))]
                   [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x)) 
@@ -244,6 +245,34 @@
          )
     )
 )|#
+
+(define makeRandomRule
+    (lambda(L n) 
+         (letrec (
+                  [A (random-element L)];these shouldn't be random
+                  [B (random-element L)]
+                  [C (random-element L)]
+                  [D (random-element L)]
+                  [E (random-element L)]
+                  [F (random-element L)]
+                  [G (random-element L)]
+                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                        ; mod 2 = 0
+                                                           (lambda (x)  (recursive-and x)))]                     ; mod 2 = 1
+                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x))    ; mod 3 = 1
+                           (lambda (x)  (caddr x))))]                                                            ; mod 3 = 2
+                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))  ; mod 3 = 0
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x)) ; mod 3 = 1
+                           (lambda (x)  (cadddr x))))])                                                          ; mod 3 = 2
+             (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
+                 (list (lambda(X) 
+                         (if (equal? (reg-op1 X) A) B C)))                                                       ; mod 2 = 0
+                 (list (lambda(X)
+                         (if 
+                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G))))          ; mod 2 = 1
+         )
+    )
+)
 
 (define func-list-build 
     (lambda(num obs)
@@ -264,9 +293,9 @@
 
 ;(patternBuild-repeat-n 20 rules-list data)
 
-(list observedData 'break (last (patternBuild-repeat-n 100 (pick-n-rand-rules 20 rules-list) data)))
+#|(list observedData 'break (last (patternBuild-repeat-n 100 (pick-n-rand-rules 20 rules-list) data)))|#
 
-#|(define samples
+(define samples
   (mh-query
      10000 10
 
@@ -276,7 +305,7 @@
    )
 )
 
-(occurences samples)|#
+(occurences samples)
 
 ;(list rules-list)
 

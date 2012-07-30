@@ -1,0 +1,397 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{graphicx}
+
+\usepackage[left=2.54cm,top=2.54 cm,right=2.54cm,nohead,nofoot]{geometry}
+
+\begin{document}
+
+\title{\bf Traffic Light Phase Optimisation using GA}
+\author{{\bf Louis Burke}\\ \\
+School of Computer Science \& Informatics\\
+University College Dublin\\
+louis.burke@ucdconnect.ie}
+\maketitle
+
+\begin{abstract}
+Road Traffic congestion is a major problem for road networks especially for those with traffic light controlled junctions. This paper 
+explores the use of an evolutionary strategy for determining the optimal traffic signal phase times in a sequence, for an irregular 
+shaped road network (i.e.\ non-grid plan) in order to reduce congestion. Fitness is determined to be the mean time it takes for all cars 
+to finish their routes (random) through the network. The candidate solutions are generated using a Genetic Algorithm (GA). To evaluate 
+the fitness of each member solution in the population an open source traffic simulator SUMO \cite{SUMO} is used. It was found that a
+GA could come up with good solutions for ensuring throughput of vehicles in the network and would be suitable for providing inspiration
+for setting up traffic light signals for a given road network.
+
+\end{abstract}
+
+\section{Introduction}
+Is a GA strategy useful in reducing congestion in an irregular road network by evolving the traffic light signal phases?
+For a given road network comprised of 6 junctions with traffic lights and a random set of vehicles routed through 
+that network, can a GA, operating on all the traffic lights as a chromosome, improve the time taken for the vehicles
+ to get through the network. This question assumes a traffic light control system for each junction which is allocated
+ arbitrarily and independently of each other traffic light, thereby leaving room for optimisation using a GA.
+
+Congestion has negative impact on utilization of the transportation infrastructure, increasing travel time, air pollution and fuel 
+consumption some of the root causes of this congestion lie in the traffic management of the vehicles going through the network namely
+the traffic lights at junctions. This problem could be seen as being related to queuing and it would be interesting to see if mean time 
+for vehicles waiting or queuing at junctions is reduced. 
+This project question takes inspiration from Multi-agent system based urban traffic management \cite{Multi-agent}. In that paper they 
+described the use of a GA to evolve green signal phases times in an online manner to improve traffic flow throughout the road network. 
+That is to say, given the current or prevalent flow of traffic, evolve a traffic light solution to improve the network flow. This was
+done over the green signal times. The ability to do this is outside the scope of this project to achieve. I instead decided to encode 
+the entirety of a simulated road network’s traffic lights into a chromosome and evolved it using steady state GA provided by the C++ 
+GA library  \cite{galib}.  By doing this I wanted to show the power of a GA to search for a good solution for traffic light signals to 
+improve traffic throughput. 
+
+This was then tested when cars with random routes tried to get through the network. GA is a search heuristic that mimics the process of
+natural evolution. This heuristic is routinely used to generate useful solutions to optimization and search problems. GA uses an 
+iterative process that incorporates variation, selection and inheritance. The algorithm creates a `population' of possible solutions, 
+selecting the best individuals to create the next generation. The process is driven by a fitness function, which is used to evaluate the 
+solutions.  In this case the mean time taken for all vehicles to complete their route symbolises a solution's fitness. Thus a fitness 
+function only specifies how to evaluate the output, not how to accomplish it. By allowing GA's to explore the problem space, they are 
+capable of creating novel solutions. For more information on GA’s see \cite{ANASbook} \cite{GAbook} \cite{IntroGA} \cite{evocomp}.
+
+GA is an appropriate heuristic or algorithm for this kind of problem because of the discrete nature the traffic light signal times and the traffic light phase description. That is to say that the traffic light colour and phase duration time is easily encoded in binary as detailed later on in this paper.
+
+Genetic Algorithms exhibit high performance for finding near-optimal solutions rapidly with respect to large and dynamically changing search spaces. Their inherent strength as optimization techniques make them good candidates for solutions to road traffic management and congestion avoidance problems \cite{dynam} \cite{genren}.
+
+\section{Genetic Algoritms}
+Genetic algorithms use the essence of the mechanisms of heredity and evolution, extracting these processes from the specific context of genetics. By using these concepts, it is possible to design adaptive systems. These algorithms search any suitably represented domain of structures' for
+ones with higher associated measures of performance. They do so by maintaining a population of structures together with their associated performance measures and repeatedly applying idealized genetic operators to structures in the population to produce new structures for testing. The structures to be operated upon are chosen from the population based on their associated performance measure; therefore, structures exhibiting better performance have a higher probability of producing new structures. The genetic operators are such that characteristics of a structure associated with good performance are preserved and propagated through the population over time.
+
+\subsection{GA Pseudo Code}
+Pseudo code for a G.A.s is as follows.
+\newline
+\newline
+\textbf{begin}
+\newline
+Randomly generate an initial population with M structures.
+\newline
+\begin{tabbing}
+\textbf{For}  \= each M in population, evaluate and save its performance measure.\\
+\> \textbf{while} \= performance criterion is not met \\
+\> \> \textbf{do begin} \= \\
+\> \> \> Generate the next population by selecting structures from current\\ 
+\> \> \> populations with selection probability and applying genetic operators\\ 
+\> \> \> to them (eg.\ the structures that have higher performance will have\\ 
+\> \> \> a higher probability of reproducing).\\
+\> \> \textbf{For} each M in the new population, \\
+\> \> \> Evaluate performance and save their performance measures.\\
+\> \> \textbf{endbegin;}\\
+\> \textbf{endwhile;}\\
+\textbf{endbegin;}
+\end{tabbing}
+
+\subsection{Genetic Operators}
+The genetic operators are the means of introducing new rules to the system. The following is an introduction to two primitive genetic 
+operators.
+\newline
+\newline
+\newline
+\newline
+\subsubsection{Crossover}
+
+The crossover operator recombines two knowledge structures from the population by exchanging string segments. Therefore, the crossover 
+operator introduces the “in-betweencharacteristics” of the selected two structures. In terms of search strategy, crossover operators 
+have the ability to concentrate the search upon interesting areas. A crossover point in a selected structure is selected at random. 
+Of course, the structures that have higher performance measures will have a higher probability of participating in a crossover.
+\newline
+\newline
+For example:
+\newline
+\newline
+Structure 1: a b e f g h i
+\newline 
+Structure 2: L K U T A J X
+\newline
+\newline
+The Crossover of points 3 and 5 will be
+\newline
+\newline
+Result: a b \textbf{U T A} h i and L K \textbf{e f g} J X
+
+\subsubsection{Mutations}
+In producing new strings, the crossover operator draws only on the information present in the population. In other words, the crossover
+operator cannot generate entirely new genotypes; it may only deal with genotypes which already exist. The mutation operator provides a
+means for introducing missing information into the population. It generates a new structure by modifying the values of one or more 
+positions (gene) in an existing structure. For example:
+\newline
+\newline
+Structure: 1 0 0 1 1 1 0
+\newline
+\newline
+The mutation of the 2nd and 5th points would be one of the following.
+\newline
+\newline
+Result:\newline
+1 \emph{1} 0 1 \emph{1} 1 0\newline
+1 \emph{1} 0 1 \emph{0} 1 0\newline
+1 \emph{0} 0 1 \emph{1} 1 0\newline
+1 \emph{0} 0 1 \emph{0} 1 0
+\newline
+\newline
+The above is taken from:
+\url{http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=40288}
+
+\subsection{GA and the traffic problem}
+In the \emph{Multi-agent system based urban traffic management} \cite{Multi-agent} paper it described the use of various algorithms that
+have been applied to traffic management problems. These include for example Learning Classifier Systems, Cellular Automata etc.\ all of
+which work with evolutionary algorithms. This further illustrates the power of GA’s when applied to problems related to traffic 
+management. The work done in \cite{Multi-agent} seeks to provide an extension to the approach taken in the paper \cite{realcode},
+developed for queue reduction in a single intersection, to a larger network having six intersections.
+
+Whereas my model focused on the throughput of vehicles through the road system, the model used in \cite{Multi-agent} focused on the 
+dissipation and formation of retained vehicles in the different lanes at the end of different phases.
+\newline
+\section{SUMO Simulation of Urban MObility}
+``Simulation of Urban MObility'' (SUMO) \cite{Sim4} is an open source, highly portable, microscopic road traffic simulation package 
+designed to handle large road networks. In traffic research, four classes of traffic flow models are distinguished according to the 
+level of detail of the simulation, macroscopic, microscopic, mesoscopic and submicroscopic. Macroscopic simulations concern the modeling
+of traffic flow, microscopic models simulate the movement of every single vehicle on a given street, mesoscopic resides between 
+microscopic and macroscopic simulations, where vehicle movement is mostly simulated using queue approaches and single vehicles are moved
+between such queues. Sub-microscopic models regard single vehicles like microscopic, but extend them by dividing them into further 
+substructures, which describe the engine's rotation speed in relation to the vehicle's speed or the driver's preferred gear switching 
+actions, for instance. SUMO is a microscopic, multi-modal traffic simulation. It allows one to simulate how a given traffic demand which
+consists of single vehicles moves through a given road network. The simulation allows one to address a large set of traffic management 
+topics. It is purely microscopic: each vehicle is modelled explicitly, has its own route, and moves individually through the network. 
+A description of a route is given below in XML with an accompanying legend.
+
+
+\begin{lstlisting}
+<vehicle id="t0" depart="0.00">
+    <route edges="9wo 3fi 2o 9o"/>
+</vehicle>
+\end{lstlisting}
+
+\begin{center}
+    \begin{tabular}{| l | l | p{10cm} |}
+    \hline
+    id & string & The name of the route. \\ \hline
+    edges & list & The edges the vehicle shall drive along, given as their ids, separated using spaces. \\ \hline
+    \end{tabular}
+\end{center}
+
+Also a description of a SUMO edge (typical for all edges in the network used for this project) is given below.
+
+\begin{lstlisting}
+<edge id="0si" 
+      from="13" 
+      to="3" 
+      priority="1" 
+      numLanes="3" 
+      speed="50.00"/>
+\end{lstlisting}
+
+\begin{center}
+    \begin{tabular}{| l | l | p{10cm} |}
+    \hline
+    id & string & The name of the edge. \\ \hline
+    from & referenced node id & The name of a node within the nodes-file the edge shall start at. \\ \hline
+    to & referenced node id & The name of a node within the nodes-file the edge shall end at.\\ \hline
+    priority & int & The priority of the edge. \\ \hline
+    numLanes & int & The number of lanes of the edge; must be an integer value. \\ \hline
+    speed & float & The maximum speed allowed on the edge in m/s; must be a floating point number. \\ \hline
+    \end{tabular}
+\end{center}
+ 
+All edges connect nodes. A node may be either a traffic light junction or a terminal node. Put altogether the network formed,
+for this study, in SUMO will look like the following image Figure 1.
+
+\begin{figure}[h!]
+  \caption{Visualisation of the SUMO Network.}
+  \centering
+    \includegraphics[scale=0.5]{sumo_network}
+\end{figure}
+
+Almost every facet of SUMO is driven by XML, making it very easy to interface with other applications and simple to change between 
+executions of the simulator. All time values are given in seconds. All length values are given in meters. This means that speed is 
+given in m/s. Each simulation time step is one second long, in other words; in each simulation step, one second real time is simulated.
+
+\subsection{Building the network}
+As mentioned before the entire of the network I’m simulating using SUMO is defined in a collection of XML files. The three files are:
+\newline
+\newline
+rou.xml\newline 
+net.xml\newline
+sumo.cfg\newline
+\newline
+sumo.cfg points to both net.xml and rou.xml.\ net.xml contains the network definition as seen above and rou.xml contains the random routes
+of vehicles for the network.
+
+In order to make the binary string symmetrical i.e.\ to make every junction encode-able conforming to an 8 by 66 array of bits, some of 
+the junctions had to be moved from the original intended network. This is down to the fact that depending on the shape of the junction 
+the number of lights needed for a given phase was different therefore making the length the genome non uniform. An example of a junction 
+from the SUMO network used in this study is shown in Figure 2 below.
+\newline
+\begin{figure}[h!]
+  \caption{Visualisation of the SUMO Network Junction.}
+  \centering
+    \includegraphics[scale=0.333]{junction}
+\end{figure}
+\newline
+\subsection{Encoding the chromosome for a steady state GA}
+The SUMO simulator, in order to construct the network to run the simulation, uses a set of specifications encapsulated in an XML file 
+called a net file. In other words the way in which the network looks and works is stored in a large XML file. The part of the file of 
+particular interest is the area concerned with traffic light control.  A section of the XML used in this study looks like this.
+\newline
+\newline
+\newline
+\newline
+\newline
+\newline
+\begin{lstlisting}
+<tlLogic id="0" type="static" programID="0" offset="0">
+    <phase duration="2" state="rrryrrrgGrGrGrrrrrrr"/>
+    <phase duration="4" state="yrgGrrgrygGGygrrGrGg"/>
+    <phase duration="4" state="rrGrGrrrrrggGrygGGyg"/>
+    <phase duration="1" state="rrrrGyGgrgrrrrggrrrG"/>
+    <phase duration="8" state="rrrryyrrGGGgrrGryrrr"/>
+    <phase duration="7" state="ygGggrrGrrrGrrryrryy"/>
+    <phase duration="4" state="yrrrGrgrgGrryryrryry"/>
+    <phase duration="5" state="rGgryrrrygrrrryggyry"/>
+</tlLogic>
+\end{lstlisting}
+
+\begin{center}
+    \begin{tabular}{| l | l | p{10cm} |}
+    \hline
+    id@tlLogic & string & The id of the traffic light. \\ \hline
+    type & enum & The type of the traffic light. \\ \hline
+    programID & string & The id of the traffic light program. \\ \hline
+    offset & int & The initial time offset of the program \\ \hline
+    \end{tabular}
+\end{center}
+
+\begin{center}
+    \begin{tabular}{| l | l | p{8cm} |}
+    \hline
+    duration@phase & time (int) & The duration of the phase. \\ \hline
+    state@phase & list of signal states id & The traffic light states for this phase. \\ \hline
+    \end{tabular}
+\end{center}
+
+The XML above describes the traffic light sequence, in this case, for one of the six junction’s traffic lights, namely traffic light 
+junction id 0. The phase duration indicates the length of time a particular phase lasts for, the state describes what the light 
+configurations look like for that duration. To encapsulate this in a genome it was decided that a 2D binary string be used. The maximum 
+phase duration was limited to 60 seconds for this experiment thus 6 bits were used to encode it, if a particular genome had a value 
+contained within those 6 bits that was greater than 60 then 60 was taken as default. Next each traffic light colour was given 3 bits and 
+mapped as follows r = 000b, y = 001b, g = 010b, G = 011b. Concretely red, green, blue, Green are 0,1,2,3 respectively. The default value 
+for a light if it fell out of this range i.e.\ greater than 3 was 000b. There are 20 lights per junction so that requires 60 bits in order
+to store the state. To sum up the length of the genome is 66 bits, an example of the bit string shown here looks like the following:
+\newline
+\newline
+msb
+1000011001000110111011001111001101100110111011100101100010110101
+                                                             lsb 
+\newline
+\newline
+Considering there are 8 phases per traffic light junction and there were/are 6 junctions means the traffic light chromosome for the 
+network is a 66x48 2D binary array.
+
+The number of vehicles for every execution of the simulator was 250.
+
+
+\section{GAlib}
+Instead of writing a GA implementation myself I decided to use an open source C++ GA library called GAlib. GAlib is a set of C++ genetic 
+algorithm objects. The library includes tools for using genetic algorithms to do optimization in any C++ program. Essentially I wrote a 
+C++ program that setup a steady state GA, then for every individual in a population wrote it out as XML to the net.xml file then ran 
+SUMO to ascertain fitness values for each individual. This was very straight forward using C++ string and bitset functionally.
+
+\subsection{Steady State GA}
+The generational genetic algorithm creates new offspring from the members of an old population using the genetic operators and places 
+these individuals in a new population which becomes the old population when the whole new population is created. The steady
+state genetic algorithm is different to the generational model in that there is typically only a select number of new individuals are
+inserted into the new population at any one time.
+
+\subsection{GA setup}
+The selection method for the GA, was Roulette wheel. The GA direction was minimise i.e.\ the fitness function returned a value to the GA 
+which the GA was always trying to minimize. This float value was parsed from the output file generated by SUMO on the command line.
+
+\subsection{GA Parameters}
+Following are the set of parameters used in the \@GA. The number of generations was 200. The population size was 100. The replacement 
+every generation was 50 out of every 100, 0.5 being the probability of replacement. The mutation rate was 0.01. The probability of 
+crossover was 0.9. The probability of convergence was set to 0.99.
+
+\section{Testing}
+60 runs in total were executed and the fittest individual was taken and tested against, the SUMO stock traffic light configurations, 
+and also against a random configuration, the result of which can be seen below Figure 3.
+
+\begin{figure}[h!]
+  \caption{Fitness after 200 generations averaged across 60 runs.}
+  \centering
+    \includegraphics[scale=0.4]{errorplot}
+\end{figure}
+
+\subsection{Generating a random configuration} 
+For testing purposes 10 runs of 1 generation were done and the best out of the population of 100 was returned, then the best out of the
+10 runs was chosen as a way of providing a random sample of possible traffic light configurations to test against the evolved solution.
+	
+The results can be seen below and will be explained in the next section.
+\newline
+\newline
+\newline
+\newline
+\subsection{Test Results}
+
+As can be seen from Figure 4, the GA evolved traffic light logic(GA Evolved TLL) was consistently faster than the randomly generated,
+and SUMO allocated TLL solutions. However although I noticed an improvement in network throughput, it turns out that in some cases 
+there was unacceptable wait times for a number of vehicles, roughly speaking 15 out of 250. When this happens the vehicle is removed 
+from the simulations. The table A illustrates this problem, essentially there are more cars taken from the simulation due to 
+unacceptable wait time from the GA Evloved TLL networks then from the SUMO allocation situations where ever there is a * beside the 
+GA Evloved TLL time. When visualising the execution of the fittest TLL network using SUMO GUI functionality it was interesting to 
+note that congestion seemed to gather around the top two junctions of the network (see Figure 1).
+
+Another important thing to note was that the evolved solution outperformed the other solutions consistently, 
+giving confidence in the idea that it found a good solution in general for the network. Even with the SUMO allocation and the 
+generation 0 (or random) allocation of lights there were instances of vehicles waiting too long in the simulation. Worryingly this was
+often the case with the SUMO allocation. When visualising this in sumo-gui this is manifested by a car waiting at a junction even though 
+it has a chance to continue it's route.
+\newline
+\begin{figure}[h!]
+  \caption{Results.}
+  \centering
+    \includegraphics[scale=0.7]{test_results}
+\end{figure}
+
+\begin{figure}[h!]
+  \caption{The * denotes a situation where the number of cars expelled from the GA network definition was greater than the SUMO traffic light logic.}
+  \centering
+    \includegraphics[scale=0.6]{compare}
+\end{figure}
+
+\section{Discussion}
+If this was applied on an online fashion using my setup it would be too slow to keep up with the pace of change in the traffic 
+conditions, due to the limitations of computation power and the fact that a simulation is being run each time to ascertain fitness. 
+A better way to decide fitness would need to be found.
+	
+The relevance of GA in this instance is that it can take into account inter-junction behaviour as demonstrated to make sure that one 
+solution for one set of traffic lights doesn’t degrade the traffic handling capabilities of another.
+
+It would be interesting to see how GA could be used on differing aspects of a network control especially if fitness could be determined 
+by the congestion or lack thereof at junctions by means other than those described in this paper. Most of the work done before on 
+congestion management with GAs makes use of Learning Classifier Systems etc. 
+
+As mentioned earlier the articles \cite{Multi-agent} and 
+\cite{realcode} focused on the dissipation and formation of retained vehicles in the different lanes at the end of different phases. It 
+would be interesting to explore this further but in the context of using \@SUMO. That is to say it would be interesting to explore, the
+features of SUMO that would allow you to get a measurement of the conditions of inidividual junctions so as to enable the creation of
+fitness measures like those explored in \cite{Multi-agent}. It's also a relevant investigation because although the expectation was that
+all junctions would perform optimally with the GA, as mentioned before, some junctions incurred long delays relative to others.
+
+
+\section{Conclusion}
+In this paper I set out to explore the use of Genetic Algorithms for determining the optimal traffic signal phase times in a sequence,
+for an irregular shaped road network in order to reduce congestion. The results showed that the GA was capable of evolving traffic signals
+quite easily. 
+
+The results also showed that GA significantly outperformed random search and SUMO allocated light logic. The implmenetation I used, in this 
+study, may have more relevance in a larger network then used for this project. It would be interesting to see use made of the induction
+loop features of SUMO so as to explore using GA in an online fashion. That is to say to use the induction loop data and the resultant 
+indication of congestion to develop a fitness function similar to that seen in \cite{Multi-agent}.
+
+\bibliographystyle{ieeetr}
+\bibliography{myrefs}
+\end{document}

@@ -1,5 +1,5 @@
-#lang scheme
-(require (planet williams/science/random-source))
+;#lang scheme
+;(require (planet williams/science/random-source))
 
 (define rember
         (lambda  (a L) 
@@ -145,7 +145,7 @@
 )
 
 ;(define data (list 'a 'b 'c 'd 'e 'q))
-(define data (list 'a 'b 'c))
+(define data (list 'a 'b 'a 'b 'a 'b))
 
 (define makeRulesRepeat
     (lambda(num data)
@@ -157,75 +157,14 @@
 
 (define rules-n (pick-n-rand-rules 4 rules))
 
-(define observedData (last (patternBuild-repeat-n 100 rules-n data)))
+(define observedData (last (patternBuild-repeat-n 6 rules-n data)))
 
 ;(length observedData)
 ;(list observedData)
 
 ;(append (list ((car rules-n) data) data))
 
-#|(define makeRandomRule
-    (lambda(L n) 
-         (letrec (
-                  [eventA (if (= 0 (modulo-n n 6)) 'a            
-                          (if (= 1 (modulo-n n 6)) 'b            
-                          (if (= 2 (modulo-n n 6)) 'c 
-                          (if (= 3 (modulo-n n 6)) 'd 
-                          (if (= 4 (modulo-n n 6)) 'e 
-                          'q)))))]
-                  [eventB (if (= 0 (modulo-n (truncate (recursive-divide n '(6))) 6)) 'a            
-                          (if (= 1 (modulo-n (truncate (recursive-divide n '(6))) 6)) 'b            
-                          (if (= 2 (modulo-n (truncate (recursive-divide n '(6))) 6)) 'c 
-                          (if (= 3 (modulo-n (truncate (recursive-divide n '(6))) 6)) 'd 
-                          (if (= 4 (modulo-n (truncate (recursive-divide n '(6))) 6)) 'e 
-                          'q)))))]
-                  [eventC (if (= 0 (modulo-n (truncate (recursive-divide n '(6 6))) 6)) 'a            
-                          (if (= 1 (modulo-n (truncate (recursive-divide n '(6 6))) 6)) 'b            
-                          (if (= 2 (modulo-n (truncate (recursive-divide n '(6 6))) 6)) 'c 
-                          (if (= 3 (modulo-n (truncate (recursive-divide n '(6 6))) 6)) 'd 
-                          (if (= 4 (modulo-n (truncate (recursive-divide n '(6 6))) 6)) 'e 
-                          'q)))))]
-                  [eventD (if (= 0 (modulo-n (truncate (recursive-divide n '(6 6 6))) 6)) 'a            
-                          (if (= 1 (modulo-n (truncate (recursive-divide n '(6 6 6))) 6)) 'b            
-                          (if (= 2 (modulo-n (truncate (recursive-divide n '(6 6 6))) 6)) 'c 
-                          (if (= 3 (modulo-n (truncate (recursive-divide n '(6 6 6))) 6)) 'd 
-                          (if (= 4 (modulo-n (truncate (recursive-divide n '(6 6 6))) 6)) 'e 
-                          'q)))))]
-                  [eventE (if (= 0 (modulo-n (truncate (recursive-divide n '(6 6 6 6))) 6)) 'a            
-                          (if (= 1 (modulo-n (truncate (recursive-divide n '(6 6 6 6))) 6)) 'b            
-                          (if (= 2 (modulo-n (truncate (recursive-divide n '(6 6 6 6))) 6)) 'c 
-                          (if (= 3 (modulo-n (truncate (recursive-divide n '(6 6 6 6))) 6)) 'd 
-                          (if (= 4 (modulo-n (truncate (recursive-divide n '(6 6 6 6))) 6)) 'e 
-                          'q)))))]
-                  [eventF (if (= 0 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6))) 6)) 'a            
-                          (if (= 1 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6))) 6)) 'b            
-                          (if (= 2 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6))) 6)) 'c 
-                          (if (= 3 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6))) 6)) 'd 
-                          (if (= 4 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6))) 6)) 'e 
-                          'q)))))]
-                  [eventG (if (= 0 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6))) 6)) 'a            
-                          (if (= 1 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6))) 6)) 'b            
-                          (if (= 2 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6))) 6)) 'c 
-                          (if (= 3 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6))) 6)) 'd 
-                          (if (= 4 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6))) 6)) 'e 
-                          'q)))))]
-                  [logic-operator (if (= 0 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6 6))) 2)) (lambda (x)  (recursive-or x)) ; mod 2 = 0
-                                                           (lambda (x)  (recursive-and x)))]                                             ; mod 2 = 1
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6 6 2))) 3)) (lambda (x)  (car x))               ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6 6 2))) 3)) (lambda (x)  (cadr x))              ; mod 3 = 1
-                           (lambda (x)  (caddr x))))]                                                                                    ; mod 3 = 2
-                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6 6 2 3))) 3)) (lambda (x)  (cadr x))            ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6 6 2 3))) 3)) (lambda (x)  (caddr x))           ; mod 3 = 1
-                           (lambda (x)  (cadddr x))))])                                                                                  ; mod 3 = 2
-             (if (= 0 (modulo-n (truncate (recursive-divide n '(6 6 6 6 6 6 6 2 3 3))) 2))
-                 (list (lambda(X) 
-                         (if (equal? (reg-op1 X) eventA) eventB eventC)))                                                                ; mod 2 = 0
-                 (list (lambda(X)
-                         (if 
-                          (logic-operator (list (equal? (reg-op1 X) eventD) (equal? (reg-op2 X) eventE))) eventF eventG))))              ; mod 2 = 1
-         )
-    )
-)
+#|
 
 (define makeRandomRule
     (lambda(L n) 
@@ -249,7 +188,7 @@
 (define makeRandomRule
     (lambda(L n) 
          (letrec (
-                  [A (random-element L)];these shouldn't be random
+                  [A (random-element L)]
                   [B (random-element L)]
                   [C (random-element L)]
                   [D (random-element L)]
@@ -289,23 +228,23 @@
     )
 )
 
-(define rules-list (func-list-build 3000 observedData))
+(define rules-list (func-list-build 36 observedData))
 
 ;(patternBuild-repeat-n 20 rules-list data)
 
-#|(list observedData 'break (last (patternBuild-repeat-n 100 (pick-n-rand-rules 20 rules-list) data)))|#
+;(list observedData 'break (last (patternBuild-repeat-n 20 (pick-n-rand-rules 20 rules-list) data)))
 
 (define samples
   (mh-query
-     10000 10
+     30000 10
 
-     (equal? observedData (last (patternBuild-repeat-n 100 (pick-n-rand-rules 4 rules-list) data)))
+     (equal? observedData (last (patternBuild-repeat-n 6 (pick-n-rand-rules 5 rules-list) data)))
 
      #t
    )
 )
 
-(occurences samples)
+(occurences samples)	
 
 ;(list rules-list)
 

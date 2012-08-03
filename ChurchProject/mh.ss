@@ -37,10 +37,6 @@
 (define (random-element L)
   (list-ref L (car (non-dec (floor (* (random-real) (length L))) 0))))
 
-;(define bit-list 
-;    (lambda(obs n) (if (eq? obs 0) '() (cons  (list n (* (- (/ obs 2) (floor (/ obs 2))) 2)) (bit-list (truncate (/ obs 2)) (+ n 1)))))
-;)
-
 ;works on bher
 (define modulo-n 
     (lambda(num numerate) (* (- (/ num numerate) (floor (/ num numerate))) numerate))
@@ -128,7 +124,7 @@
                   [G (random-element L)]
                   [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                        ; mod 2 = 0
                                                            (lambda (x)  (recursive-and x)))]                     ; mod 2 = 1
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0
+                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0 
                            (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x))    ; mod 3 = 1
                            (lambda (x)  (caddr x))))]                                                            ; mod 3 = 2
                   [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))  ; mod 3 = 0
@@ -155,7 +151,7 @@
 
 (define rules (flatten (makeRulesRepeat 1000 data)))
 
-(define rules-n (pick-n-rand-rules 4 rules))
+(define rules-n (pick-n-rand-rules 5 rules))
 
 (define observedData (last (patternBuild-repeat-n 6 rules-n data)))
 
@@ -228,25 +224,37 @@
     )
 )
 
-(define rules-list (func-list-build 36 observedData))
+(define rules-list (func-list-build 36 observedData)) ;Build all possible rules (with random variables as args)
 
-;(patternBuild-repeat-n 20 rules-list data)
+(define rules5 (pick-n-rand-rules 5 rules-list))
 
-;(list observedData 'break (last (patternBuild-repeat-n 20 (pick-n-rand-rules 20 rules-list) data)))
-
-(define samples
+#|(define samples
   (mh-query
      30000 10
 
-     (equal? observedData (last (patternBuild-repeat-n 6 (pick-n-rand-rules 5 rules-list) data)))
+     (equal? observedData (last (patternBuild-repeat-n 6 rules5 data)))
 
      #t
    )
 )
 
-(occurences samples)	
+(occurences samples)|#
 
-;(list rules-list)
+(define rules2 (list (car rules-list) (cadr rules-list)))
 
-;(eq? (length observedData) (length (flatten (patternBuild rules-list data))))
+;(> (count (car rules-list) (cdr rules-list)) 0)
+
+(define samples
+  (mh-query
+     30000 10
+
+     (define rules5mh (pick-n-rand-rules 5 rules-list))
+
+     
+     
+     (equal? observedData (last (patternBuild-repeat-n 6 rules5mh data)))
+   )
+)
+
+(occurences samples)
 

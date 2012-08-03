@@ -250,7 +250,8 @@
 
      (define rules5mh (pick-n-rand-rules 5 rules-list))
 
-     
+     (and (> (count (car rules2) rules5mh) 0)
+          (> (count (cadr rules2) rules5mh)) 0))
      
      (equal? observedData (last (patternBuild-repeat-n 6 rules5mh data)))
    )

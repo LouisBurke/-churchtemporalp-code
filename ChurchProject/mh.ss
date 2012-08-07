@@ -1,6 +1,3 @@
-;#lang scheme
-;(require (planet williams/science/random-source))
-
 (define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
@@ -30,30 +27,39 @@
         )
 )
 
-;works on bher
+
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
-;works on bher
+
 (define (random-element L)
   (list-ref L (car (non-dec (floor (* (random-real) (length L))) 0))))
 
-;works on bher
+
 (define modulo-n 
     (lambda(num numerate) (* (- (/ num numerate) (floor (/ num numerate))) numerate))
 )
 
-;(define check-bit
-;    (lambda(obs n) (if (eq? (caar obs) n) (if (eq? (cadar obs) 1) #t #f) (check-bit (cdr obs) n)))
-;)
-
-;works on bher
 (define recursive-divide (lambda (n L) (if (null? L ) (/ n 1) (/ (recursive-divide n (cdr L)) (car L)))))
 
-;works on bher
+
 (define recursive-and (lambda (X) (if (null? X) #t (and (car X) (recursive-and (cdr X))))))
 
-;works on bher
+
 (define recursive-or (lambda (X) (if (null? X) #f (or (car X) (recursive-or (cdr X))))))
+
+(define list-truth 
+  (lambda (L1 L2) 
+    (if (null? L1) '() 
+      (cons (> (count (car L1) L2) 0) 
+        (list-truth (cdr L1) L2)
+      )
+    )
+  )
+)
+
+(define n-random-nums (lambda (n) (if (= 0 n) '() (cons (non-dec (floor (* (random-real) 36)) 0) (n-random-nums (- n 1))))
+                      )
+)
 
 (define patternBuildRepeat 
     (lambda(len data)
@@ -91,27 +97,6 @@
         )
 )
 
-;works on bher
-#|(define makeRules
-    (lambda(L n) 
-         (letrec ([logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x)) (lambda (x)  (recursive-and x)))]
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x)) 
-                               (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x)) 
-                                   (lambda (x)  (caddr x))))]
-                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))
-                               (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x))
-                                   (lambda (x)  (cadddr x))))])
-             (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
-                 (list (lambda(X) 
-                         (if (equal? (reg-op1 X) (random-element L)) (random-element L) (random-element L)))) 
-                 (list (lambda(X)
-                         (if 
-                          (logic-operator (list (equal? (reg-op1 X) (random-element L)) (equal? (reg-op2 X) (random-element L)))) (random-element L) (random-element L)))))
-         )
-    )
-)
-|#
-
 (define makeRules
     (lambda(L n) 
          (letrec (
@@ -140,8 +125,7 @@
     )
 )
 
-;(define data (list 'a 'b 'c 'd 'e 'q))
-(define data (list 'a 'b 'a 'b 'a 'b))
+(define data (list 'a 'b 'c 'a 'b 'a 'b))
 
 (define makeRulesRepeat
     (lambda(num data)
@@ -154,32 +138,6 @@
 (define rules-n (pick-n-rand-rules 5 rules))
 
 (define observedData (last (patternBuild-repeat-n 6 rules-n data)))
-
-;(length observedData)
-;(list observedData)
-
-;(append (list ((car rules-n) data) data))
-
-#|
-
-(define makeRandomRule
-    (lambda(L n) 
-         (letrec ([logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x)) (lambda (x)  (recursive-and x)))]
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x)) 
-                               (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x)) 
-                                   (lambda (x)  (caddr x))))]
-                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))
-                               (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x))
-                                   (lambda (x)  (cadddr x))))])
-             (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
-                 (list (lambda(X) 
-                         (if (equal? (reg-op1 X) (random-element L)) (random-element L) (random-element L)))) 
-                 (list (lambda(X)
-                         (if 
-                          (logic-operator (list (equal? (reg-op1 X) (random-element L)) (equal? (reg-op2 X) (random-element L)))) (random-element L) (random-element L)))))
-         )
-    )
-)|#
 
 (define makeRandomRule
     (lambda(L n) 
@@ -216,7 +174,6 @@
     )
 )
 
-
 (define func-list-build-from-list 
     (lambda(obs L)
         (if  (null? L) '() (append (makeRandomRule obs (car L)) (func-list-build-from-list  obs (cdr L)) )
@@ -224,38 +181,59 @@
     )
 )
 
-(define rules-list (func-list-build 36 observedData)) ;Build all possible rules (with random variables as args)
+(define rules-list (func-list-build 108 observedData)) ;Build all possible rules (with random variables as args)
 
-(define rules5 (pick-n-rand-rules 5 rules-list))
+#|(define rules5 (pick-n-rand-rules 5 rules-list))
 
-#|(define samples
-  (mh-query
-     30000 10
+(define samples
+  (mh-queryz
+     10000 10
 
      (equal? observedData (last (patternBuild-repeat-n 6 rules5 data)))
 
      #t
    )
-)
+)|#
 
-(occurences samples)|#
+(define rules5mh (pick-n-rand-rules 5 rules-list))
 
-(define rules2 (list (car rules-list) (cadr rules-list)))
+;(list (length rules-list) (length (cdr rules-list)) (length (cddr rules-list)) (length (cdddr rules-list)) (length (cddddr rules-list)))
 
-;(> (count (car rules-list) (cdr rules-list)) 0)
+;(list-truth rules-list rules5mh)
+
+;(length rules-n)
 
 (define samples
   (mh-query
-     30000 10
+     10000 10
 
      (define rules5mh (pick-n-rand-rules 5 rules-list))
+     ;(recursive-or (list-truth (cddddr rules-list) rules5mh))
+     (list-truth rules-list rules5mh)
 
-     (and (> (count (car rules2) rules5mh) 0)
-          (> (count (cadr rules2) rules5mh)) 0))
-     
      (equal? observedData (last (patternBuild-repeat-n 6 rules5mh data)))
    )
 )
 
-(occurences samples)
+(define truth-index (lambda (L n) (if (eq? n (length L)) '() (cons (if (eq? (list-ref L n) #t) n '()) (truth-index  L (+ n 1))
+                                                                   )
+                                     )
+                     )
+)
+
+(define testlist (caar (occurences samples)))
+
+
+(flatten (truth-index testlist 0))
+
+
+#|
+(define truthval (if (equal? (car (car occur)) #t) (cadr (car occur)) (cadr (if (< (length occur) 2) '(#t 0) (cadr occur)))))
+
+(define top (cadr (car occur)))
+(define bot (if (< (length occur) 2) 0 (cadr occur)))
+
+(list top bot)
+
+(list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")|#
 

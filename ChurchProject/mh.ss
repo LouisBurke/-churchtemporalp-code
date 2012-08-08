@@ -97,6 +97,15 @@
         )
 )
 
+
+(define truth-index 
+  (lambda (L n) 
+    (if (eq? n (length L)) '() 
+      (cons (if (eq? (list-ref L n) #t) n '()) (truth-index  L (+ n 1)))
+    )
+  )
+)
+
 (define makeRules
     (lambda(L n) 
          (letrec (
@@ -215,17 +224,16 @@
    )
 )
 
-(define truth-index (lambda (L n) (if (eq? n (length L)) '() (cons (if (eq? (list-ref L n) #t) n '()) (truth-index  L (+ n 1))
-                                                                   )
-                                     )
-                     )
+(define list-funcs 
+  (lambda(ind L) 
+    (if (null? ind) '() 
+      (cons (list-ref L (car ind)) (list-funcs  (cdr ind) L))) 
+  )
 )
 
-(define testlist (caar (occurences samples)))
+(define indices (flatten (truth-index (caar (occurences samples)) 0)))
 
-
-(flatten (truth-index testlist 0))
-
+(list-funcs indices rules-list)
 
 #|
 (define truthval (if (equal? (car (car occur)) #t) (cadr (car occur)) (cadr (if (< (length occur) 2) '(#t 0) (cadr occur)))))

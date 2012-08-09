@@ -1,3 +1,6 @@
+#lang scheme
+(require (planet williams/science/random-source))
+
 (define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
@@ -158,34 +161,6 @@
                   [E (random-element L)]
                   [F (random-element L)]
                   [G (random-element L)]
-                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                        ; mod 2 = 0
-                                                           (lambda (x)  (recursive-and x)))]                     ; mod 2 = 1
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x))    ; mod 3 = 1
-                           (lambda (x)  (caddr x))))]                                                            ; mod 3 = 2
-                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))  ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x)) ; mod 3 = 1
-                           (lambda (x)  (cadddr x))))])                                                          ; mod 3 = 2
-             (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
-                 (list (lambda(X) 
-                         (if (equal? (reg-op1 X) A) B C)))                                                       ; mod 2 = 0
-                 (list (lambda(X)
-                         (if 
-                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G))))          ; mod 2 = 1
-         )
-    )
-)
-
-(define makeRandomRule
-    (lambda(L n) 
-         (letrec (
-                  [A (random-element L)]
-                  [B (random-element L)]
-                  [C (random-element L)]
-                  [D (random-element L)]
-                  [E (random-element L)]
-                  [F (random-element L)]
-                  [G (random-element L)]
                   [logic-operator (if (= 0 (modulo-n n 2)) (cons (lambda (x)  (recursive-or x)) (list 'recursive-or))                 ; mod 2 = 0
                                                            (cons (lambda (x)  (recursive-and x))(list 'recursive-and)))]              ; mod 2 = 1
                   [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (cons (lambda (x)  (car x)) (list 'car))       ; mod 3 = 0
@@ -199,10 +174,10 @@
                          (if (equal? ((car reg-op1) X) A) B C)) (list 'lambda '(X) (list 'if (list 'equal? (list (cadr reg-op1) 'X) A) B C)))        ;mod 2 = 0
                  (list (lambda(X)
                          (if 
-                          ((car logic-operator) (list (equal? ((car reg-op1) X) D) (equal? ((car reg-op2) X) E))) F G)))
+                          ((car logic-operator) (list (equal? ((car reg-op1) X) D) (equal? ((car reg-op2) X) E))) F G))
                  (list 'lambda '(X) (list 
                          'if 
-                          (list (cadr logic-operator) (list 'equal? (list (cadr reg-op1) 'L) D) (list 'equal? (list (cadr reg-op2) 'L) E)) F G)))          ; mod 2 = 1
+                          (list (cadr logic-operator) (list 'equal? (list (cadr reg-op1) 'L) D) (list 'equal? (list (cadr reg-op2) 'L) E)) F G))))          ; mod 2 = 1
          )
     )
 )
@@ -223,6 +198,7 @@
 
 (define rules-list (func-list-build 144 observedData)) ;Build all possible rules (with random variables as args)
 
+(list rules-list)
 #|(define rules5 (pick-n-rand-rules 5 rules-list))
 
 (define samples
@@ -233,7 +209,7 @@
 
      #t
    )
-)|#
+)
 
 (define rules5mh (pick-n-rand-rules 5 rules-list))
 
@@ -260,7 +236,7 @@
 
 (list-funcs indices rules-list)
 
-#|
+
 (define truthval (if (equal? (car (car occur)) #t) (cadr (car occur)) (cadr (if (< (length occur) 2) '(#t 0) (cadr occur)))))
 
 (define top (cadr (car occur)))

@@ -198,7 +198,14 @@
 
 (define rules-list (func-list-build 144 observedData)) ;Build all possible rules (with random variables as args)
 
-(list rules-list)
+(define strip-list-func (lambda (L) (if (null? L) '() (cons (car L) (strip-list-func (cddr L))))) 
+)
+
+(define strip-list-desc (lambda (L) (if (null? L) '() (cons (cadr L) (strip-list-desc (cddr L))))) 
+)
+
+(strip-list-desc rules-list)
+(strip-list-func rules-list)
 #|(define rules5 (pick-n-rand-rules 5 rules-list))
 
 (define samples

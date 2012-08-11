@@ -57,27 +57,6 @@
   )
 )
 
-(define n-random-nums (lambda (n) (if (= 0 n) '() (cons (non-dec (floor (* (random-real) 36)) 0) (n-random-nums (- n 1))))
-                      )
-)
-
-(define patternBuildRepeat 
-    (lambda(len data)
-        (if (eq? len 0) '() (cons (last (patternBuild rules data)) (patternBuildRepeat (- len 1) (last (patternBuild rules data)))))
-    ) 
-)
-
-(define patternBuild 
-        (lambda (rules L) 
-                 (if (null? rules) (quote ( ) )
-                     (letrec ([rule (random-element rules)]
-                              [aug (flatten (append (list (rule L) L)))])
-                         (cons (remq '() (append (list (rule L)) L)) (patternBuild (remq rule rules) (remq '() (remq '() (append (list (rule L)) L)))))
-                     )
-                 )
-        )
-)
-
 (define patternBuild-repeat-n 
         (lambda (n rules L) 
                  (if (= 0 n) '()

@@ -112,6 +112,13 @@
 (define strip-list-desc (lambda (L) (if (null? L) '() (cons (cadr L) (strip-list-desc (cddr L))))) 
 )
 
+(define list-funcs 
+  (lambda(ind L) 
+    (if (null? ind) '() 
+      (append (list (list-ref L (car ind)) #\newline) (list-funcs  (cdr ind) L))) 
+  )
+)
+
 (define makeRules
     (lambda(L n) 
          (letrec (
@@ -140,7 +147,7 @@
     )
 )
 
-(define data (list 'a 'b 'c 'a 'b 'a 'b))
+(define data (list 'a 'b 'e 'c 'q 'a 'b 'a 'b))
 
 (define makeRulesRepeat
     (lambda(num data)
@@ -214,40 +221,8 @@
 
      #t
    )
-)|#
-
-(define rules5mh (pick-n-rand-rules 5 rules-list))
-
-;(list (length rules-list) (length (cdr rules-list)) (length (cddr rules-list)) (length (cdddr rules-list)) (length (cddddr rules-list)))
-
-;(list-truth rules-list rules5mh)
-
-;(length rules-n)
-
-(define samples
-  (mh-query
-     10000 10
-
-     (define rules5mh (pick-n-rand-rules 5 rules-list))
-     ;(recursive-or (list-truth (cddddr rules-list) rules5mh))
-     (list-truth rules-list rules5mh)
-
-     (equal? observedData (last (patternBuild-repeat-n 6 rules5mh data)))
-   )
 )
 
-(define list-funcs 
-  (lambda(ind L) 
-    (if (null? ind) '() 
-      (cons (list-ref L (car ind)) (list-funcs  (cdr ind) L))) 
-  )
-)
-
-(define indices (flatten (truth-index (caar (occurences samples)) 0)))
-
-(list-funcs indices desc-list)
-
-#|
 (define truthval (if (equal? (car (car occur)) #t) (cadr (car occur)) (cadr (if (< (length occur) 2) '(#t 0) (cadr occur)))))
 
 (define top (cadr (car occur)))
@@ -255,5 +230,25 @@
 
 (list top bot)
 
-(list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")|#
+(list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")
+
+|#
+
+(define rules5mh (pick-n-rand-rules 5 rules-list))
+
+(define samples
+  (mh-query
+     10000 10
+
+     (define rules5mh (pick-n-rand-rules 5 rules-list))
+
+     (list-truth rules-list rules5mh)
+
+     (equal? observedData (last (patternBuild-repeat-n 6 rules5mh data)))
+   )
+)
+
+(define indices (flatten (truth-index (caar (occurences samples)) 0)))
+
+(list-funcs indices desc-list)
 

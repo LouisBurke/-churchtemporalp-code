@@ -27,6 +27,7 @@
         )
 )
 
+(define num-new-symbols 6)
 
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
@@ -69,7 +70,7 @@
 )
 
 (define pick-n-rand-rules 
-        (lambda ( n rules) 
+        (lambda (n rules) 
                  (if (= 0 n) (quote ( ) )
                      (cons (random-element rules) (pick-n-rand-rules (- n 1) (cdr rules)))
                  )
@@ -136,9 +137,9 @@
 
 (define rules (flatten (makeRulesRepeat 1000 data)))
 
-(define rules-n (pick-n-rand-rules 5 rules))
+(define rules-n (pick-n-rand-rules num-new-symbols rules))
 
-(define observedData (last (patternBuild-repeat-n 6 rules-n data)))
+(define observedData (last (patternBuild-repeat-n num-new-symbols rules-n data)))
 
 (define makeRandomRule
     (lambda(L n) 
@@ -178,13 +179,6 @@
     )
 )
 
-(define func-list-build-from-list 
-    (lambda(obs L)
-        (if  (null? L) '() (append (makeRandomRule obs (car L)) (func-list-build-from-list  obs (cdr L)) )
-        )
-    )
-)
-
 (define built-rules-list (func-list-build 108 observedData)) ;Build all possible rules (with random variables as args)
 
 (define desc-list (strip-list-desc built-rules-list))
@@ -193,7 +187,7 @@
 #|(define rules5 (pick-n-rand-rules 5 rules-list))
 
 (define samples
-  (mh-queryz
+  (mh-query
      10000 10
 
      (equal? observedData (last (patternBuild-repeat-n 6 rules5 data)))
@@ -213,17 +207,17 @@
 
 |#
 
-(define rules5mh (pick-n-rand-rules 5 rules-list))
+(define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
 
 (define samples
   (mh-query
-     10000 10
+     5000 10
 
-     (define rules5mh (pick-n-rand-rules 5 rules-list))
+     (define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
 
      (list-truth rules-list rules5mh)
 
-     (equal? observedData (last (patternBuild-repeat-n 6 rules5mh data)))
+     (equal? observedData (last (patternBuild-repeat-n num-new-symbols rules5mh data)))
    )
 )
 

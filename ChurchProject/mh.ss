@@ -27,7 +27,7 @@
         )
 )
 
-(define num-new-symbols 6)
+(define num-new-symbols 10)
 
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
@@ -112,7 +112,8 @@
                   [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                        ; mod 2 = 0
                                                            (lambda (x)  (recursive-and x)))]                     ; mod 2 = 1
                   [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0 
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x))    ; mod 3 = 1
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  
+                                                                                         (if (equal? (if (> (length X) 1) (cadr X) (car X)))    ; mod 3 = 1
                            (lambda (x)  (caddr x))))]                                                            ; mod 3 = 2
                   [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))  ; mod 3 = 0
                            (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x)) ; mod 3 = 1

@@ -1,6 +1,3 @@
-#lang scheme
-(require (planet williams/science/random-source))
-
 (define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
@@ -30,6 +27,7 @@
         )
 )
 
+(define num-new-symbols 10)
 
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
@@ -60,27 +58,6 @@
   )
 )
 
-(define n-random-nums (lambda (n) (if (= 0 n) '() (cons (non-dec (floor (* (random-real) 36)) 0) (n-random-nums (- n 1))))
-                      )
-)
-
-(define patternBuildRepeat 
-    (lambda(len data)
-        (if (eq? len 0) '() (cons (last (patternBuild rules data)) (patternBuildRepeat (- len 1) (last (patternBuild rules data)))))
-    ) 
-)
-
-(define patternBuild 
-        (lambda (rules L) 
-                 (if (null? rules) (quote ( ) )
-                     (letrec ([rule (random-element rules)]
-                              [aug (flatten (append (list (rule L) L)))])
-                         (cons (remq '() (append (list (rule L)) L)) (patternBuild (remq rule rules) (remq '() (remq '() (append (list (rule L)) L)))))
-                     )
-                 )
-        )
-)
-
 (define patternBuild-repeat-n 
         (lambda (n rules L) 
                  (if (= 0 n) '()
@@ -93,7 +70,7 @@
 )
 
 (define pick-n-rand-rules 
-        (lambda ( n rules) 
+        (lambda (n rules) 
                  (if (= 0 n) (quote ( ) )
                      (cons (random-element rules) (pick-n-rand-rules (- n 1) (cdr rules)))
                  )
@@ -106,6 +83,19 @@
     (if (eq? n (length L)) '() 
       (cons (if (eq? (list-ref L n) #t) n '()) (truth-index  L (+ n 1)))
     )
+  )
+)
+
+(define strip-list-func (lambda (L) (if (null? L) '() (cons (car L) (strip-list-func (cddr L))))) 
+)
+
+(define strip-list-desc (lambda (L) (if (null? L) '() (cons (cadr L) (strip-list-desc (cddr L))))) 
+)
+
+(define list-funcs 
+  (lambda(ind L) 
+    (if (null? ind) '() 
+      (append (list (list-ref L (car ind)) #\newline) (list-funcs  (cdr ind) L))) 
   )
 )
 
@@ -122,7 +112,8 @@
                   [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                        ; mod 2 = 0
                                                            (lambda (x)  (recursive-and x)))]                     ; mod 2 = 1
                   [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0 
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x))    ; mod 3 = 1
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  
+                                                                                         (if (equal? (if (> (length X) 1) (cadr X) (car X)))    ; mod 3 = 1
                            (lambda (x)  (caddr x))))]                                                            ; mod 3 = 2
                   [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))  ; mod 3 = 0
                            (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x)) ; mod 3 = 1
@@ -137,7 +128,7 @@
     )
 )
 
-(define data (list 'a 'b 'c 'a 'b 'a 'b 'e))
+(define data (list 'a 'b 'e 'c 'q 'a 'b 'a 'b))
 
 (define makeRulesRepeat
     (lambda(num data)
@@ -147,9 +138,9 @@
 
 (define rules (flatten (makeRulesRepeat 1000 data)))
 
-(define rules-n (pick-n-rand-rules 5 rules))
+(define rules-n (pick-n-rand-rules num-new-symbols rules))
 
-(define observedData (last (patternBuild-repeat-n 6 rules-n data)))
+(define observedData (last (patternBuild-repeat-n num-new-symbols rules-n data)))
 
 (define makeRandomRule
     (lambda(L n) 
@@ -189,27 +180,15 @@
     )
 )
 
-(define func-list-build-from-list 
-    (lambda(obs L)
-        (if  (null? L) '() (append (makeRandomRule obs (car L)) (func-list-build-from-list  obs (cdr L)) )
-        )
-    )
-)
+(define built-rules-list (func-list-build 108 observedData)) ;Build all possible rules (with random variables as args)
 
-(define rules-list (func-list-build 144 observedData)) ;Build all possible rules (with random variables as args)
+(define desc-list (strip-list-desc built-rules-list))
+(define rules-list (strip-list-func built-rules-list))
 
-(define strip-list-func (lambda (L) (if (null? L) '() (cons (car L) (strip-list-func (cddr L))))) 
-)
-
-(define strip-list-desc (lambda (L) (if (null? L) '() (cons (cadr L) (strip-list-desc (cddr L))))) 
-)
-
-(strip-list-desc rules-list)
-(strip-list-func rules-list)
 #|(define rules5 (pick-n-rand-rules 5 rules-list))
 
 (define samples
-  (mh-queryz
+  (mh-query
      10000 10
 
      (equal? observedData (last (patternBuild-repeat-n 6 rules5 data)))
@@ -218,32 +197,6 @@
    )
 )
 
-(define rules5mh (pick-n-rand-rules 5 rules-list))
-
-(define samples
-  (mh-query
-     10000 10
-
-     (define rules5mh (pick-n-rand-rules 5 rules-list))
-     ;(recursive-or (list-truth (cddddr rules-list) rules5mh))
-     (list-truth rules-list rules5mh)
-
-     (equal? observedData (last (patternBuild-repeat-n 6 rules5mh data)))
-   )
-)
-
-(define list-funcs 
-  (lambda(ind L) 
-    (if (null? ind) '() 
-      (cons (list-ref L (car ind)) (list-funcs  (cdr ind) L))) 
-  )
-)
-
-(define indices (flatten (truth-index (caar (occurences samples)) 0)))
-
-(list-funcs indices rules-list)
-
-
 (define truthval (if (equal? (car (car occur)) #t) (cadr (car occur)) (cadr (if (< (length occur) 2) '(#t 0) (cadr occur)))))
 
 (define top (cadr (car occur)))
@@ -251,5 +204,25 @@
 
 (list top bot)
 
-(list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")|#
+(list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")
+
+|#
+
+(define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
+
+(define samples
+  (mh-query
+     5000 10
+
+     (define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
+
+     (list-truth rules-list rules5mh)
+
+     (equal? observedData (last (patternBuild-repeat-n num-new-symbols rules5mh data)))
+   )
+)
+
+(define indices (flatten (truth-index (caar (occurences samples)) 0)))
+
+(list-funcs indices desc-list)
 

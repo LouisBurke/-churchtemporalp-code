@@ -1,6 +1,3 @@
-#lang scheme
-(require (planet williams/science/random-source))
-
 (define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
@@ -30,7 +27,7 @@
         )
 )
 
-(define num-new-symbols 60)
+(define num-new-symbols 3)
 
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
@@ -64,7 +61,7 @@
 (define patternBuild-repeat-n 
         (lambda (n rules L) 
                  (if (= 0 n) '()
-                     (letrec ([rule (random-element rules)]
+                     (letrec ([rule (random-element rules)]; this might cause problems
                               [aug (flatten (append (list (rule L) L)))])
                          (append (list aug) (patternBuild-repeat-n (- n 1) rules aug))
                      )
@@ -213,18 +210,34 @@
 (define desc-list (strip-list-desc built-rules-list))
 (define rules-list (strip-list-func built-rules-list))
 
-observedData
-#|(define rules5 (pick-n-rand-rules 5 rules-list))
+(define rules5 (pick-n-rand-rules 6 desc-list))
 
-(define samples
+(list rules5 #\newline
+      rules5 #\newline
+      rules5 #\newline
+      rules5 #\newline
+      rules5)
+
+#|(list (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules5 data))) #\newline
+      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules5 data))) #\newline
+      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules5 data))) #\newline
+      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules5 data))))|#
+
+#|(define samples
   (mh-query
      10000 10
 
-     (equal? observedData (last (patternBuild-repeat-n 6 rules5 data)))
+     (define rules5 (pick-n-rand-rules 6 rules-list))
+
+     (equal? observedData (last (patternBuild-repeat-n num-new-symbols rules5 data)))
 
      #t
    )
 )
+
+(define occur (occurences samples))
+
+occur
 
 (define truthval (if (equal? (car (car occur)) #t) (cadr (car occur)) (cadr (if (< (length occur) 2) '(#t 0) (cadr occur)))))
 
@@ -234,8 +247,6 @@ observedData
 (list top bot)
 
 (list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")
-
-
 
 (define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
 
@@ -253,5 +264,5 @@ observedData
 
 (define indices (flatten (truth-index (caar (occurences samples)) 0)))
 
-(list-funcs indices desc-list)
-|#
+(list-funcs indices desc-list)|#
+

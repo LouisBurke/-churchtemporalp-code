@@ -1,3 +1,6 @@
+#lang scheme
+(require (planet williams/science/random-source))
+
 (define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
@@ -27,7 +30,7 @@
         )
 )
 
-(define num-new-symbols 10)
+(define num-new-symbols 60)
 
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
@@ -102,43 +105,52 @@
 (define makeRules
     (lambda(L n) 
          (letrec (
-                  [A (random-element L)];these shouldn't be random
+                  [A (random-element L)]
                   [B (random-element L)]
                   [C (random-element L)]
                   [D (random-element L)]
                   [E (random-element L)]
                   [F (random-element L)]
                   [G (random-element L)]
-                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                        ; mod 2 = 0
-                                                           (lambda (x)  (recursive-and x)))]                     ; mod 2 = 1
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0 
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  
-                                                                                         (if (equal? (if (> (length X) 1) (cadr X) (car X)))    ; mod 3 = 1
-                           (lambda (x)  (caddr x))))]                                                            ; mod 3 = 2
-                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))  ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x)) ; mod 3 = 1
-                           (lambda (x)  (cadddr x))))])                                                          ; mod 3 = 2
+                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))               ; mod 2 = 0
+                                                           (lambda (x)  (recursive-and x)))]            ; mod 2 = 1
+                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
+                               (lambda (x)  (car x))                                                    ; mod 3 = 0 
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
+                               (lambda (x) (if (> (length x) 1) (cadr x) (car x)))
+                               (lambda (x) (if (> (length x) 2) (caddr x) 
+                                               (if (> (length x) 1) (cadr x) (car x))))))]              ; mod 3 = 2
+                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3))
+                               (lambda (x)  (if (> (length x) 1) (cadr x) (car x)))                    ; mod 3 = 0
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3))
+                               (lambda (x) (if (> (length x) 2) (caddr x) 
+                                               (if (> (length x) 1) (cadr x) (car x))))                 ; mod 3 = 1
+                               (lambda (x) (if (> (length x) 3) (cadddr x) 
+                                               (if (> (length x) 2) (caddr x) 
+                                                   (if (> (length x) 1) (cadr x) (car x)))))))])        ; mod 3 = 2
              (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
                  (list (lambda(X) 
-                         (if (equal? (reg-op1 X) A) B C)))                                                       ; mod 2 = 0
+                         (if (equal? (reg-op1 X) A) B C)))                                              ; mod 2 = 0
                  (list (lambda(X)
                          (if 
-                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G))))          ; mod 2 = 1
+                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G)))) ; mod 2 = 1
          )
     )
 )
 
-(define data (list 'a 'b 'e 'c 'q 'a 'b 'a 'b))
+(define symbols (list 'a 'b 'e 'c 'q))
+
+(define data (list 'a))
 
 (define makeRulesRepeat
-    (lambda(num data)
-        (if  (eq? num 0) '() (cons (makeRules data num) (makeRulesRepeat (- num 1) data)))
+    (lambda(num L)
+        (if  (eq? num 0) '() (cons (makeRules L num) (makeRulesRepeat (- num 1) L)))
     ) 
 )
 
-(define rules (flatten (makeRulesRepeat 1000 data)))
+(define rules (flatten (makeRulesRepeat 108 symbols)))
 
-(define rules-n (pick-n-rand-rules num-new-symbols rules))
+(define rules-n (pick-n-rand-rules 6 rules))
 
 (define observedData (last (patternBuild-repeat-n num-new-symbols rules-n data)))
 
@@ -152,23 +164,39 @@
                   [E (random-element L)]
                   [F (random-element L)]
                   [G (random-element L)]
-                  [logic-operator (if (= 0 (modulo-n n 2)) (cons (lambda (x)  (recursive-or x)) (list 'recursive-or))                 ; mod 2 = 0
-                                                           (cons (lambda (x)  (recursive-and x))(list 'recursive-and)))]              ; mod 2 = 1
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (cons (lambda (x)  (car x)) (list 'car))       ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (cons (lambda (x)  (cadr x)) (list 'cadr))     ; mod 3 = 1
-                           (cons (lambda (x)  (caddr x)) (list 'caddr))))]                                                            ; mod 3 = 2
-                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (cons (lambda (x)  (cadr x)) (list 'cadr))   ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (cons (lambda (x)  (caddr x)) (list 'caddr)) ; mod 3 = 1
-                           (cons (lambda (x)  (cadddr x)) (list 'cadddr))))])                                                         ; mod 3 = 2
+                  [logic-operator (if (= 0 (modulo-n n 2)) (cons (lambda (x)  (recursive-or x)) (list 'recursive-or))                              ; mod 2 = 0
+                                                           (cons (lambda (x)  (recursive-and x))(list 'recursive-and)))]                           ; mod 2 = 1
+                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
+                               (list (lambda (x)  (car x)) (list 'car))                                                                            ; mod 3 = 0                           
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
+                               (list (lambda (x) (if (> (length x) 1) (cadr x) (car x))) 
+                                     (list 'lambda '(x) (list 'if (list '> (list 'length 'x) 1) (list 'cadr 'x) (list 'car 'x))))                  ; mod 3 = 1                           
+                               (list (lambda (x) (if (> (length x) 2) (caddr x) (if (> (length x) 1) (cadr x) (car x)))) 
+                                     (list 'lambda '(x) (list 'if (list '> (list 'length 'x) 2) (list 'caddr 'x)
+                                           (list 'if (list '> (list 'length 'x) 1) (list 'cadr 'x) (list 'car 'x)))))))]                           ; mod 3 = 2
+                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) 
+                               (list (lambda (x) (if (> (length x) 1) (cadr x) (car x))) 
+                                     (list 'lambda '(x) 'if (list '> (list 'length 'x) 1) (list 'cadr 'x) (list 'car 'x)))                         ; mod 3 = 0
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) 
+                               (list (lambda (x) (if (> (length x) 2) (caddr x) 
+                                                     (if (> (length x) 1) (cadr x) (car x)))) 
+                                     (list 'lambda '(x) (list 'if (list '> (list 'length 'x) 2) (list 'caddr 'x)
+                                           (list 'lambda '(x) 'if (list '> (list 'length 'x) 1) (list 'cadr 'x) (list 'car 'x)))))                 ; mod 3 = 1
+                               (list (lambda (x) (if (> (length x) 3) (cadddr x) 
+                                                     (if (> (length x) 2) (caddr x) 
+                                                         (if (> (length x) 1) (cadr x) (car x))))) 
+                                     (list 'lambda '(x) (list 'if (list '> (list 'length 'x) 3) (list 'cadddr 'x) 
+                                           (list 'if (list '> (list 'length 'x) 2) (list 'caddr 'x)
+                                                 (list 'if (list '> (list 'length 'x) 1) (list 'cadr 'x) (list 'car 'x))))))))])                   ; mod 3 = 2
              (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
                  (list (lambda(X) 
-                         (if (equal? ((car reg-op1) X) A) B C)) (list 'lambda '(X) (list 'if (list 'equal? (list (cadr reg-op1) 'X) A) B C)))        ;mod 2 = 0
+                         (if (equal? ((car reg-op1) X) A) B C)) (list 'lambda '(X) (list 'if (list 'equal? (list (cadr reg-op1) 'X) A) B C)))      ; mod 2 = 0
                  (list (lambda(X)
                          (if 
                           ((car logic-operator) (list (equal? ((car reg-op1) X) D) (equal? ((car reg-op2) X) E))) F G))
                  (list 'lambda '(X) (list 
                          'if 
-                          (list (cadr logic-operator) (list 'equal? (list (cadr reg-op1) 'L) D) (list 'equal? (list (cadr reg-op2) 'L) E)) F G))))          ; mod 2 = 1
+                          (list (cadr logic-operator) (list 'equal? (list (cadr reg-op1) 'X) D) (list 'equal? (list (cadr reg-op2) 'X) E)) F G)))) ; mod 2 = 1
          )
     )
 )
@@ -185,6 +213,7 @@
 (define desc-list (strip-list-desc built-rules-list))
 (define rules-list (strip-list-func built-rules-list))
 
+observedData
 #|(define rules5 (pick-n-rand-rules 5 rules-list))
 
 (define samples
@@ -206,7 +235,7 @@
 
 (list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")
 
-|#
+
 
 (define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
 
@@ -225,4 +254,4 @@
 (define indices (flatten (truth-index (caar (occurences samples)) 0)))
 
 (list-funcs indices desc-list)
-
+|#

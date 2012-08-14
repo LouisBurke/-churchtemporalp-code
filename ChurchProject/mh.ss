@@ -109,21 +109,23 @@
                   [E (random-element L)]
                   [F (random-element L)]
                   [G (random-element L)]
-                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                        ; mod 2 = 0
-                                                           (lambda (x)  (recursive-and x)))]                     ; mod 2 = 1
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0 
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  
-                                                                                         (if (equal? (if (> (length X) 1) (cadr X) (car X)))    ; mod 3 = 1
-                           (lambda (x)  (caddr x))))]                                                            ; mod 3 = 2
-                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))  ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x)) ; mod 3 = 1
-                           (lambda (x)  (cadddr x))))])                                                          ; mod 3 = 2
+                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                         ; mod 2 = 0
+                                                           (lambda (x)  (recursive-and x)))]                      ; mod 2 = 1
+                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))      ; mod 3 = 0 
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
+                             (lambda (x) (if (> (length x) 1) (cadr x) (car x)))                                  ; mod 3 = 1
+                           (lambda (x) (if (> (length x) 2) (caddr x) (if (> (length x) 1) (cadr x) (car x))))))] ; mod 3 = 2
+                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) 
+                             (lambda (x)  (if (> (length x) 1) (caddr x) (car x)))                                ; mod 3 = 0
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) 
+                             (lambda (x) (if (> (length x) 2) (caddr x) (if (> (length x) 1) (cadr x) (car x))))  ; mod 3 = 1
+                           (lambda (x) (if (> (length x) 3) (cadddr x) (if (> (length x) 2) (caddr x) (if (> (length x) 1) (cadr x) (car x))))))])                                                          ; mod 3 = 2
              (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
                  (list (lambda(X) 
-                         (if (equal? (reg-op1 X) A) B C)))                                                       ; mod 2 = 0
+                         (if (equal? (reg-op1 X) A) B C)))                                                        ; mod 2 = 0
                  (list (lambda(X)
                          (if 
-                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G))))          ; mod 2 = 1
+                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G))))           ; mod 2 = 1
          )
     )
 )

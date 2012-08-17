@@ -1,3 +1,6 @@
+#lang scheme
+(require (planet williams/science/random-source))
+
 (define rember
         (lambda  (a L) 
               (cond ((null? L)                           (quote () ) )
@@ -27,7 +30,7 @@
         )
 )
 
-(define num-new-symbols 10)
+(define num-new-symbols 6)
 
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
@@ -58,12 +61,19 @@
   )
 )
 
+(define pos_rules
+  (lambda (rules D) 
+    (if (null? rules) '() 
+      (cons (car rules) (pos_rules (cdr rules) D))
+    )
+  )
+) 
+
 (define patternBuild-repeat-n 
-        (lambda (n rules L) 
-                 (if (= 0 n) '()
-                     (letrec ([rule (random-element rules)]
-                              [aug (flatten (append (list (rule L) L)))])
-                         (append (list aug) (patternBuild-repeat-n (- n 1) rules aug))
+        (lambda (len rules D) 
+                 (if (= 0 len) '()
+                     (letrec ([pos_next (random-element (pos_rules rules D))])
+                         (append (list pos_next) (patternBuild-repeat-n (- len 1) rules D))
                      )
                  )
         )
@@ -109,23 +119,20 @@
                   [E (random-element L)]
                   [F (random-element L)]
                   [G (random-element L)]
-                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                         ; mod 2 = 0
-                                                           (lambda (x)  (recursive-and x)))]                      ; mod 2 = 1
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))      ; mod 3 = 0 
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
-                             (lambda (x) (if (> (length x) 1) (cadr x) (car x)))                                  ; mod 3 = 1
-                           (lambda (x) (if (> (length x) 2) (caddr x) (if (> (length x) 1) (cadr x) (car x))))))] ; mod 3 = 2
-                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) 
-                             (lambda (x)  (if (> (length x) 1) (caddr x) (car x)))                                ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) 
-                             (lambda (x) (if (> (length x) 2) (caddr x) (if (> (length x) 1) (cadr x) (car x))))  ; mod 3 = 1
-                           (lambda (x) (if (> (length x) 3) (cadddr x) (if (> (length x) 2) (caddr x) (if (> (length x) 1) (cadr x) (car x))))))])                                                          ; mod 3 = 2
+                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                        ; mod 2 = 0
+                                                           (lambda (x)  (recursive-and x)))]                     ; mod 2 = 1
+                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0 
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x))    ; mod 3 = 1
+                           (lambda (x)  (caddr x))))]                                                            ; mod 3 = 2
+                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))  ; mod 3 = 0
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x)) ; mod 3 = 1
+                           (lambda (x)  (cadddr x))))])                                                          ; mod 3 = 2
              (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
                  (list (lambda(X) 
-                         (if (equal? (reg-op1 X) A) B C)))                                                        ; mod 2 = 0
+                         (if (equal? (reg-op1 X) A) B C)))                                                       ; mod 2 = 0
                  (list (lambda(X)
                          (if 
-                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G))))           ; mod 2 = 1
+                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G))))          ; mod 2 = 1
          )
     )
 )
@@ -138,13 +145,16 @@
     ) 
 )
 
-(define rules (flatten (makeRulesRepeat 1000 data)))
+(define rules (flatten (makeRulesRepeat 108 data)))
 
-(define rules-n (pick-n-rand-rules num-new-symbols rules))
+(define rules-n (pick-n-rand-rules 5 rules))
+
+(list rules-n)
 
 (define observedData (last (patternBuild-repeat-n num-new-symbols rules-n data)))
 
-(define makeRandomRule
+observedData
+#|(define makeRandomRule
     (lambda(L n) 
          (letrec (
                   [A (random-element L)]
@@ -187,7 +197,7 @@
 (define desc-list (strip-list-desc built-rules-list))
 (define rules-list (strip-list-func built-rules-list))
 
-#|(define rules5 (pick-n-rand-rules 5 rules-list))
+(define rules5 (pick-n-rand-rules 5 rules-list))
 
 (define samples
   (mh-query
@@ -199,6 +209,10 @@
    )
 )
 
+(occurences samples)
+
+(define occur (occurences samples))
+
 (define truthval (if (equal? (car (car occur)) #t) (cadr (car occur)) (cadr (if (< (length occur) 2) '(#t 0) (cadr occur)))))
 
 (define top (cadr (car occur)))
@@ -207,8 +221,6 @@
 (list top bot)
 
 (list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")
-
-|#
 
 (define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
 
@@ -227,4 +239,4 @@
 (define indices (flatten (truth-index (caar (occurences samples)) 0)))
 
 (list-funcs indices desc-list)
-
+|#

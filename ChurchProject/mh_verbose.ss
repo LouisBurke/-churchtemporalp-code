@@ -61,9 +61,9 @@
 (define patternBuild-repeat-n 
         (lambda (n rules L) 
                  (if (= 0 n) '()
-                     (letrec ([rule (random-element rules)]; this might cause problems
+                     (letrec ([rule (car rules)]; this might cause problems
                               [aug (flatten (append (list (rule L) L)))])
-                         (append (list aug) (patternBuild-repeat-n (- n 1) rules aug))
+                         (append (list aug) (patternBuild-repeat-n (- n 1) (cdr rules) aug))
                      )
                  )
         )
@@ -160,7 +160,7 @@
                   [D (random-element L)]
                   [E (random-element L)]
                   [F (random-element L)]
-                  [G (random-element L)]
+                  [G (random-element L)]; use (and) gaurd
                   [logic-operator (if (= 0 (modulo-n n 2)) (cons (lambda (x)  (recursive-or x)) (list 'recursive-or))                              ; mod 2 = 0
                                                            (cons (lambda (x)  (recursive-and x))(list 'recursive-and)))]                           ; mod 2 = 1
                   [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
@@ -210,26 +210,29 @@
 (define desc-list (strip-list-desc built-rules-list))
 (define rules-list (strip-list-func built-rules-list))
 
-(define rules5 (pick-n-rand-rules 6 desc-list))
+#|(define rules1 (pick-n-rand-rules 6 rules-list))
+(define rules2 (pick-n-rand-rules 6 rules-list))
+(define rules3 (pick-n-rand-rules 6 rules-list))
+(define rules4 (pick-n-rand-rules 6 rules-list))
+(define rules5 (pick-n-rand-rules 6 rules-list))
+(define rules6 (pick-n-rand-rules 6 rules-list))
+(define rules7 (pick-n-rand-rules 6 rules-list))
 
-(list rules5 #\newline
-      rules5 #\newline
-      rules5 #\newline
-      rules5 #\newline
-      rules5)
-
-#|(list (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules5 data))) #\newline
+(list (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules1 data))) #\newline
+      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules2 data))) #\newline
+      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules3 data))) #\newline
+      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules4 data))) #\newline
       (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules5 data))) #\newline
-      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules5 data))) #\newline
-      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules5 data))))|#
+      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules6 data))) #\newline
+      (list observedData 'break (last (patternBuild-repeat-n num-new-symbols rules7 data))))|#
 
 #|(define samples
   (mh-query
-     10000 10
+     10000 1
 
-     (define rules5 (pick-n-rand-rules 6 rules-list))
+     (define rules6 (pick-n-rand-rules 6 rules-list))
 
-     (equal? observedData (last (patternBuild-repeat-n num-new-symbols rules5 data)))
+     (equal? observedData (last (patternBuild-repeat-n num-new-symbols rules6 data)))
 
      #t
    )
@@ -248,21 +251,23 @@ occur
 
 (list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")
 
-(define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
+(define rules5mh (pick-n-rand-rules num-new-symbols rules-list))|#
 
 (define samples
   (mh-query
-     5000 10
+     10000 10
 
      (define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
 
-     (list-truth rules-list rules5mh)
+     (> (count (car rules-list) rules5mh) 0)
 
      (equal? observedData (last (patternBuild-repeat-n num-new-symbols rules5mh data)))
    )
 )
 
-(define indices (flatten (truth-index (caar (occurences samples)) 0)))
+(occurences samples)
 
-(list-funcs indices desc-list)|#
+;(define indices (flatten (truth-index (caar (occurences samples)) 0)))
+
+;(list-funcs indices desc-list)
 

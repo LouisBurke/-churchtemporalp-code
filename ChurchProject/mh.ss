@@ -64,14 +64,15 @@
 (define pos_rules
   (lambda (rules D) 
     (if (null? rules) '() 
-      (cons ((car rules) D) (pos_rules (cdr rules) D))
+      (cons ((car (pick-n-rand-rules 1 (strip-list-func rules))) D) (pos_rules (cdr rules) D))
     )
   )
 ) 
 
 (define patternBuild-repeat-n 
   (lambda (len rules D)
-    (letrec ([new_D (cons (random-element (pos_rules rules D)) D)])
+    ;(letrec ([new_D (cons (random-element (pos_rules rules D)) D)])
+    (letrec ([new_D (cons ((car (pick-n-rand-rules 1 (strip-list-func rules))) D) D)])
       (if (= (length (flatten new_D)) len) new_D
           (patternBuild-repeat-n len rules (flatten new_D))
       )
@@ -152,7 +153,7 @@
 
 (define symbols (list 'a 'b 'c 'd 'e 'c 'q))
 
-(define data (list 'a 'a 'a 'a))
+(define data (list 'a))
 
 (define makeRulesRepeat
     (lambda(num symbols)
@@ -160,19 +161,20 @@
     ) 
 )
 
-(define rules (makeRulesRepeat 360 symbols))
+(define rules (makeRulesRepeat 3600 symbols))
 
-(define rules-desc (pick-n-rand-rules 5 (strip-list-desc rules)))
-(define rules-func (pick-n-rand-rules 5 (strip-list-func rules)))
-
-rules-func
-rules-desc
+;(define rules-desc (pick-n-rand-rules 5 (strip-list-desc rules)))
+;(define rules-func (pick-n-rand-rules 5 (strip-list-func rules)))
 
 ;(pos_rules rules-func data)
 
-(define observedData (patternBuild-repeat-n num-new-symbols rules-func data))
+;((car (pick-n-rand-rules 1 (strip-list-func rules))) data)
+
+(define observedData (patternBuild-repeat-n num-new-symbols rules data))
 
 observedData
+
+;observedData
 ;observedData
 #|(define makeRandomRule
     (lambda(L n) 

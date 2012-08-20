@@ -64,7 +64,7 @@
 (define pos_rules
   (lambda (rules D) 
     (if (null? rules) '() 
-      (cons (car rules) (pos_rules (cdr rules) D))
+      (cons ((car rules) D) (pos_rules (cdr rules) D))
     )
   )
 ) 
@@ -112,32 +112,38 @@
 (define makeRules
     (lambda(L n) 
          (letrec (
-                  [A (random-element L)];these shouldn't be random
+                  [A (random-element L)]
                   [B (random-element L)]
-                  [C (random-element L)]
+                  [C '()]
                   [D (random-element L)]
                   [E (random-element L)]
                   [F (random-element L)]
-                  [G (random-element L)]
-                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))                        ; mod 2 = 0
-                                                           (lambda (x)  (recursive-and x)))]                     ; mod 2 = 1
-                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (car x))     ; mod 3 = 0 
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) (lambda (x)  (cadr x))    ; mod 3 = 1
-                           (lambda (x)  (caddr x))))]                                                            ; mod 3 = 2
-                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (cadr x))  ; mod 3 = 0
-                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) (lambda (x)  (caddr x)) ; mod 3 = 1
-                           (lambda (x)  (cadddr x))))])                                                          ; mod 3 = 2
+                  [G '()]
+                  [logic-operator (if (= 0 (modulo-n n 2)) (lambda (x)  (recursive-or x))               ; mod 2 = 0
+                                                           (lambda (x)  (recursive-and x)))]            ; mod 2 = 1
+                  [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
+                               (lambda (x) (car x))                                                     ; mod 3 = 0 
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
+                               (lambda (x) (if (> (length x) 1) (cadr x) '()))                          ; mod 3 = 1
+                               (lambda (x) (if (> (length x) 2) (caddr x) '()))))]                      ; mod 3 = 2
+                  [reg-op2 (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) 
+                               (lambda (x) (if (> (length x) 1) (cadr x) '()))                          ; mod 3 = 0
+                           (if (= 1 (modulo-n (truncate (recursive-divide n '(2 3))) 3)) 
+                               (lambda (x) (if (> (length x) 2) (caddr x) '()))                         ; mod 3 = 1
+                               (lambda (x)  (if (> (length x) 3) (caddr x) '()))))])                    ; mod 3 = 2
              (if (= 0 (modulo-n (truncate (recursive-divide n '(2 3 3))) 2))
                  (list (lambda(X) 
-                         (if (equal? (reg-op1 X) A) B C)))                                                       ; mod 2 = 0
+                         (if (equal? (reg-op1 X) A) B C)))                                              ; mod 2 = 0
                  (list (lambda(X)
                          (if 
-                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G))))          ; mod 2 = 1
+                          (logic-operator (list (equal? (reg-op1 X) D) (equal? (reg-op2 X) E))) F G)))) ; mod 2 = 1
          )
     )
 )
 
-(define data (list 'a 'b 'e 'c 'q 'a 'b 'a 'b))
+(define symbols (list 'a 'b 'c 'd 'e 'c 'q))
+
+(define data (list 'a))
 
 (define makeRulesRepeat
     (lambda(num data)
@@ -145,15 +151,15 @@
     ) 
 )
 
-(define rules (flatten (makeRulesRepeat 108 data)))
+(define rules (flatten (makeRulesRepeat 144 data)))
 
-(define rules-n (pick-n-rand-rules 5 rules))
-
-(list rules-n)
+(define rules-n (pick-n-rand-rules 10 rules))
 
 (define observedData (last (patternBuild-repeat-n num-new-symbols rules-n data)))
 
-observedData
+(random-element (pos_rules rules-n data))
+
+;observedData
 #|(define makeRandomRule
     (lambda(L n) 
          (letrec (

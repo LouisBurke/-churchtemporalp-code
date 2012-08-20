@@ -70,13 +70,13 @@
 ) 
 
 (define patternBuild-repeat-n 
-        (lambda (len rules D) 
-                 (if (= 0 len) '()
-                     (letrec ([pos_next (random-element (pos_rules rules D))])
-                         (append (list pos_next) (patternBuild-repeat-n (- len 1) rules D))
-                     )
-                 )
-        )
+  (lambda (len rules D)
+    (letrec ([new_D (cons (random-element (pos_rules rules D)) D)])
+      (if (= (length (flatten new_D)) len) new_D
+          (patternBuild-repeat-n len rules (flatten new_D))
+      )
+    )
+  )
 )
 
 (define pick-n-rand-rules 
@@ -155,11 +155,9 @@
 
 (define rules-n (pick-n-rand-rules 10 rules))
 
-(define observedData (last (patternBuild-repeat-n num-new-symbols rules-n data)))
+(define observedData (patternBuild-repeat-n num-new-symbols rules-n data))
 
-(random-element (pos_rules rules-n data))
-
-;observedData
+observedData
 #|(define makeRandomRule
     (lambda(L n) 
          (letrec (

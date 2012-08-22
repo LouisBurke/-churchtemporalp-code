@@ -206,7 +206,20 @@
 
 observedData
 
-(define samples
+(define dataBuild-repeat-n 
+        (lambda (rules L) 
+                 (if (null? rules) '()
+                     (letrec ([rule (caar rules)]; this might cause problems
+                              [aug (flatten (append (list (rule L) L)))])
+                         (append (list aug) (dataBuild-repeat-n  (cdr rules) aug))
+                     )
+                 )
+        )
+)
+
+(last (dataBuild-repeat-n (pick-n-rand-rules (- num-new-symbols 1) rules) data))
+
+#|(define samples
   (mh-query
      10000 10
      
@@ -218,7 +231,7 @@ observedData
    )
 )
 
-#|
+
 
 (define built-rules-list (func-list-build 108 observedData)) ;Build all possible rules (with random variables as args)
 

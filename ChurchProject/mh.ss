@@ -30,7 +30,7 @@
         )
 )
 
-(define num-new-symbols 60)
+(define num-new-symbols 10)
 
 (define non-dec (lambda (n l) (if (= n l) (list l) (non-dec n (+ l 1)))))
 
@@ -69,16 +69,7 @@
   )
 ) 
 
-#|(define patternBuild-repeat-n 
-  (lambda (len rules D)
-    ;(letrec ([new_D (cons (random-element (pos_rules rules D)) D)])
-    (letrec ([rand_rule (pick-n-rand-rules 1 rules)])
-      (if (= (length (flatten new_D)) len) new_D
-          (patternBuild-repeat-n len rules (flatten new_D))
-      )
-    )
-  )
-)|#
+
 
 (define patternBuild-repeat-n 
   (lambda (len rules D)
@@ -92,6 +83,23 @@
     )
   )
 )
+
+#|(define seq-build 
+  (lambda (rules D)
+    (if len_D (list )
+        (letrec ([rand_rule (pick-n-rand-rules 1 rules)])
+          (append (if (null? ((caar rand_rule) (flatten D))) '() rand_rule) 
+                  (seq-build len rules (append (list ((caar rand_rule) (flatten D))) (flatten D)))) 
+        )
+    )
+  )
+)|#
+
+(define applies? 
+  (lambda (rules D cnt)
+    (cond ( (null? rules)                                                 '() ) 
+          ( (null? ((car rules) D)) (append '() (applies? (cdr rules) D (+ 1 cnt)) ))
+          ( else  (append (list cnt) (applies? (cdr rules) D (+ 1 cnt)) ) ))))
 
 (define pick-n-rand-rules 
         (lambda (n rules) 
@@ -124,11 +132,11 @@
 
 (define expose_rule_func 
   (lambda (L) 
-    (if (null? L) '() (cons (caar L) (expose_rule_func (cdr L))))
+    (if (null? L) '() (cons (cons (caar L) #\newline) (expose_rule_func (cdr L))))
   )
 )
 
-(define strip-list-func (lambda (L) (if (null? L) '() (cons (car L) (strip-list-func (cddr L))))) 
+(define strip-list-func (lambda (L) (if (null? L) '() (cons (caar L) (strip-list-func (cdr L))))) 
 )
 
 (define strip-list-desc (lambda (L) (if (null? L) '() (cons (cadr L) (strip-list-desc (cddr L))))) 
@@ -192,19 +200,13 @@
     ) 
 )
 
-(define rules (makeRulesRepeat 3600 symbols))
+(define rules (makeRulesRepeat 108 symbols))
 
-;(define data_n_rules (patternBuild-repeat-n num-new-symbols rules data))
+(define hidden_rules (patternBuild-repeat-n num-new-symbols rules data))
 
-;(define observedData (last (expose_data data_n_rules data)))
+(define exposed_data (last (expose_data hidden_rules data)))
 
-;observedData
-
-;(expose_rule_func data_n_rules)
-
-(define observedData (last (expose_data (patternBuild-repeat-n num-new-symbols rules data) data)))
-
-observedData
+(define observedData exposed_data)
 
 (define dataBuild-repeat-n 
         (lambda (rules L) 
@@ -217,34 +219,18 @@ observedData
         )
 )
 
-(last (dataBuild-repeat-n (pick-n-rand-rules (- num-new-symbols 1) rules) data))
+(define rules5 (pick-n-rand-rules 5 rules))
+
+rules5
+
+(applies? (strip-list-func rules5) data 0)
+;(last (makeRules symbols (car (non-dec (floor (uniform 1 10000)) 1))))
 
 #|(define samples
   (mh-query
-     10000 10
-     
-     (define try (last (expose_data (patternBuild-repeat-n num-new-symbols rules data) data)))
-     
-     (equal? observedData try)
+     10000 10  
 
-     #t
-   )
-)
-
-
-
-(define built-rules-list (func-list-build 108 observedData)) ;Build all possible rules (with random variables as args)
-
-(define desc-list (strip-list-desc built-rules-list))
-(define rules-list (strip-list-func built-rules-list))
-
-(define rules5 (pick-n-rand-rules 5 rules-list))
-
-(define samples
-  (mh-query
-     10000 10
-
-     (equal? observedData (last (patternBuild-repeat-n 6 rules5 data)))
+     (equal? secret_rule (last (makeRules symbols (car (non-dec (floor (uniform 1 10000)) 1)))))
 
      #t
    )
@@ -252,32 +238,41 @@ observedData
 
 (occurences samples)
 
-(define occur (occurences samples))
-
-(define truthval (if (equal? (car (car occur)) #t) (cadr (car occur)) (cadr (if (< (length occur) 2) '(#t 0) (cadr occur)))))
-
-(define top (cadr (car occur)))
-(define bot (if (< (length occur) 2) 0 (cadr occur)))
-
-(list top bot)
-
-(list "Probability of any rules being involed." (* 100 (/ (+ truthval 0) (+ bot top)))"%")
-
-(define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
-
 (define samples
   (mh-query
-     5000 10
+     500 10
 
-     (define rules5mh (pick-n-rand-rules num-new-symbols rules-list))
+     (define data_n_rules (patternBuild-repeat-n num-new-symbols rules data)) 
 
-     (list-truth rules-list rules5mh)
+     ;(expose_rule_desc data_n_rules)
+     data_n_rules
 
-     (equal? observedData (last (patternBuild-repeat-n num-new-symbols rules5mh data)))
+     (equal? observedData (last (expose_data data_n_rules data)))
    )
 )
 
-(define indices (flatten (truth-index (caar (occurences samples)) 0)))
+(define samples
+  (mh-query
+     2000 10
 
-(list-funcs indices desc-list)
-|#
+     (equal? observedData (last (expose_data (patternBuild-repeat-n num-new-symbols rules data) data)))
+
+     #t
+   )
+)
+(define samples
+  (mh-query
+     10000 10
+
+     (define data_n_rules (patternBuild-repeat-n num-new-symbols rules data)) 
+
+     ;(expose_rule_desc data_n_rules)
+     (equal? observedData (last (expose_data data_n_rules data)))
+
+     (equal? (cdr observedData) (cdr (last (expose_data data_n_rules data))))
+   )
+)
+
+(occurences samples)
+(list (last (dataBuild-repeat-n (caar (occurences samples)) data)) #\newline observedData)|#
+

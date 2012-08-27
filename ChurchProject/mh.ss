@@ -1,5 +1,5 @@
-#lang scheme
-(require (planet williams/science/random-source))
+;#lang scheme
+;(require (planet williams/science/random-source))
 
 (define rember
         (lambda  (a L) 
@@ -69,7 +69,11 @@
   )
 ) 
 
-
+(define applies? 
+  (lambda (rules D cnt)
+    (cond ( (null? rules)                                                 '() ) 
+          ( (null? ((car rules) D)) (append '() (applies? (cdr rules) D (+ 1 cnt)) ))
+          ( else      (append (list cnt) (applies? (cdr rules) D (+ 1 cnt)) ) ))))
 
 (define patternBuild-repeat-n 
   (lambda (len rules D)
@@ -84,22 +88,19 @@
   )
 )
 
-#|(define seq-build 
-  (lambda (rules D)
-    (if len_D (list )
-        (letrec ([rand_rule (pick-n-rand-rules 1 rules)])
-          (append (if (null? ((caar rand_rule) (flatten D))) '() rand_rule) 
-                  (seq-build len rules (append (list ((caar rand_rule) (flatten D))) (flatten D)))) 
+(define seq-build 
+  (lambda (rules D len n)
+    (if (or (= (length D) len) (= n 0)) (list D) 
+      (let ([applies (applies? rules D 0)])
+        (if (null? applies) (seq-build rules D len (- n 1)) 
+                            (seq-build rules 
+                                       (list ((list-ref rules (random-element applies)) D) D) 
+                                       len (- n 1))
         )
+      )     
     )
   )
-)|#
-
-(define applies? 
-  (lambda (rules D cnt)
-    (cond ( (null? rules)                                                 '() ) 
-          ( (null? ((car rules) D)) (append '() (applies? (cdr rules) D (+ 1 cnt)) ))
-          ( else  (append (list cnt) (applies? (cdr rules) D (+ 1 cnt)) ) ))))
+)
 
 (define pick-n-rand-rules 
         (lambda (n rules) 
@@ -200,7 +201,7 @@
     ) 
 )
 
-(define rules (makeRulesRepeat 108 symbols))
+(define rules (makeRulesRepeat 36 symbols))
 
 (define hidden_rules (patternBuild-repeat-n num-new-symbols rules data))
 
@@ -219,11 +220,15 @@
         )
 )
 
-(define rules5 (pick-n-rand-rules 5 rules))
+(define rules1 (pick-n-rand-rules 10 rules))
+(define rules2 (pick-n-rand-rules 10 rules))
+(define rules3 (pick-n-rand-rules 10 rules))
+(define rules4 (pick-n-rand-rules 10 rules))
 
-rules5
-
-(applies? (strip-list-func rules5) data 0)
+(seq-build (strip-list-func rules1) data 6 10)
+(seq-build (strip-list-func rules2) data 6 10)
+(seq-build (strip-list-func rules3) data 6 10)
+(seq-build (strip-list-func rules4) data 6 10)
 ;(last (makeRules symbols (car (non-dec (floor (uniform 1 10000)) 1))))
 
 #|(define samples

@@ -235,7 +235,7 @@
 )
 
 (define rules (makeRulesRepeat 72 symbols))
-(define simple-rules (make-simple-rules-repeat 72 symbols data))
+(define simple-rules (make-simple-rules-repeat 36 symbols data))
 
 #|(define hidden_rules (patternBuild-repeat-n num-new-symbols rules data))
 

@@ -166,7 +166,7 @@
 
 (define make-rules-simple
     (lambda(L n start) 
-         (letrec ([A start]
+         (letrec ([A 'a]
                   [B (random-element L)]
                   [C '()]
                   [reg-op1 (cons (lambda (x)  (car x)) (list 'car 'X))])
@@ -263,7 +263,7 @@
       (let ([sym-list (flatten (seq-build (strip-list-func rand-rules) data))])
         (let ([sym-length (length sym-list)])
           ;(if (= sym-length len) (list '()) '())
-            (if (>= sym-length len) (list sym-list rand-rules) (stream rules len))
+            (if (= sym-length len) (list sym-list rand-rules) (stream rules len))
         )
       )
     )
@@ -272,9 +272,11 @@
 
 (define U (append rules simple-rules-1 simple-rules-2))
 
-(define observedData (car (stream U 9)))
+U
 
-observedData
+(define observedData (car (stream U 3)))
+
+(length observedData)
 
 #|(flatten (seq-build (strip-list-func (pick-n-rand-rules 6 rules)) data))
 

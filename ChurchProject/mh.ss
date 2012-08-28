@@ -221,9 +221,17 @@
         )
 )
 
-(define rules1 (pick-n-rand-rules 5 rules))
+(define stream 
+  (lambda (rules len)
+    (let ([rand-rules (strip-list-func (pick-n-rand-rules 6 rules))])
+      (let ([sym-list (flatten (seq-build rand-rules data 4 5))])
+        (if (= len (length sym-list)) (list sym-list rand-rules) (stream rules len))
+      )
+    )
+  )
+)
 
-(seq-build (strip-list-func rules1) data 4 5)
+(stream rules 4)
 ;(last (makeRules symbols (car (non-dec (floor (uniform 1 10000)) 1))))
 
 #|(define samples

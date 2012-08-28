@@ -89,15 +89,11 @@
 )
 
 (define seq-build 
-  (lambda (rules D len n)
+  (lambda (rules D)
     (let ([applies (applies? rules D 0)])
       (if (null? applies) (list D)
-      ;(if (or (= (length D) len) (= n 0)) (list D)      
-        ;(if (null? applies) (seq-build rules D len (- n 1)) 
-                            (seq-build rules 
-                                       (flatten (list ((list-ref rules (random-element applies)) D) D)) 
-                                       len (- n 1))
-        ;)
+        (seq-build rules 
+          (flatten (list ((list-ref rules (random-element applies)) D) D)))
       )     
     )
   )
@@ -224,7 +220,7 @@
 (define stream 
   (lambda (rules len)
     (let ([rand-rules (strip-list-func (pick-n-rand-rules 6 rules))])
-      (let ([sym-list (flatten (seq-build rand-rules data 4 5))])
+      (let ([sym-list (flatten (seq-build rand-rules data))])
         (if (= len (length sym-list)) (list sym-list rand-rules) (stream rules len))
       )
     )

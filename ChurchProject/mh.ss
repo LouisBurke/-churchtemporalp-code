@@ -1,5 +1,5 @@
-#lang scheme
-(require (planet williams/science/random-source))
+;#lang scheme
+;(require (planet williams/science/random-source))
 
 (define rember
         (lambda  (a L) 
@@ -107,6 +107,23 @@
         )
 )
 
+(define pick-n-rand-rules-index 
+        (lambda (n rules) 
+                 (if (= 0 n) (quote ( ) )
+                     (cons (car (non-dec (floor (* (random-real) (length rules))) 0))
+                           (pick-n-rand-rules-index (- n 1) rules))
+                 )
+        )
+)
+
+(define get-rules-by-index 
+        (lambda (rules index) 
+                 (if (null? index) (quote ( ) )
+                     (cons (list-ref rules (car index))
+                           (get-rules-by-index rules (cdr index)))
+                 )
+        )
+)
 
 (define truth-index 
   (lambda (L n) 
@@ -200,11 +217,11 @@
 
 (define rules (makeRulesRepeat 108 symbols))
 
-(define hidden_rules (patternBuild-repeat-n num-new-symbols rules data))
+#|(define hidden_rules (patternBuild-repeat-n num-new-symbols rules data))
 
 (define exposed_data (last (expose_data hidden_rules data)))
 
-(define observedData exposed_data)
+(define observedData exposed_data)|#
 
 (define dataBuild-repeat-n 
         (lambda (rules L) 
@@ -219,30 +236,42 @@
 
 (define stream 
   (lambda (rules len)
-    (let ([rand-rules (strip-list-func (pick-n-rand-rules 6 rules))])
-      (let ([sym-list (flatten (seq-build rand-rules data))])
+    (let ([rand-rules (pick-n-rand-rules 6 rules)])
+      (let ([sym-list (flatten (seq-build (strip-list-func rand-rules) data))])
         (if (= len (length sym-list)) (list sym-list rand-rules) (stream rules len))
       )
     )
   )
 )
 
-(stream rules 4)
+(define observedData (car (stream rules 4)))
+
+observedData
+
+;(flatten (seq-build (strip-list-func (pick-n-rand-rules 6 rules)) data))
+
+(define rules-index (pick-n-rand-rules-index 5 rules))
+
 ;(last (makeRules symbols (car (non-dec (floor (uniform 1 10000)) 1))))
 
-#|(define samples
+(strip-list-func (get-rules-by-index rules (pick-n-rand-rules-index 5 rules)))
+
+(define samples
   (mh-query
-     10000 10  
-
-     (equal? secret_rule (last (makeRules symbols (car (non-dec (floor (uniform 1 10000)) 1)))))
-
-     #t
+     1000 10  
+     
+     (define rules-index (pick-n-rand-rules-index 5 rules))
+     (define rules-sample (strip-list-func (get-rules-by-index rules (pick-n-rand-rules-index 5 rules)))
+          
+     rules-index     
+     
+     (equal? observedData (seq-build rules-sample data))
    )
 )
 
 (occurences samples)
 
-(define samples
+#|(define samples
   (mh-query
      500 10
 

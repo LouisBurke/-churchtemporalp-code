@@ -1,5 +1,5 @@
-;#lang scheme
-;(require (planet williams/science/random-source))
+#lang scheme
+(require (planet williams/science/random-source))
 
 (define rember
         (lambda  (a L) 
@@ -90,13 +90,14 @@
 
 (define seq-build 
   (lambda (rules D len n)
-    (if (or (= (length D) len) (= n 0)) (list D) 
-      (let ([applies (applies? rules D 0)])
-        (if (null? applies) (seq-build rules D len (- n 1)) 
+    (let ([applies (applies? rules D 0)])
+      (if (null? applies) (list D)
+      ;(if (or (= (length D) len) (= n 0)) (list D)      
+        ;(if (null? applies) (seq-build rules D len (- n 1)) 
                             (seq-build rules 
-                                       (list ((list-ref rules (random-element applies)) D) D) 
+                                       (flatten (list ((list-ref rules (random-element applies)) D) D)) 
                                        len (- n 1))
-        )
+        ;)
       )     
     )
   )
@@ -201,7 +202,7 @@
     ) 
 )
 
-(define rules (makeRulesRepeat 36 symbols))
+(define rules (makeRulesRepeat 108 symbols))
 
 (define hidden_rules (patternBuild-repeat-n num-new-symbols rules data))
 
@@ -220,15 +221,9 @@
         )
 )
 
-(define rules1 (pick-n-rand-rules 10 rules))
-(define rules2 (pick-n-rand-rules 10 rules))
-(define rules3 (pick-n-rand-rules 10 rules))
-(define rules4 (pick-n-rand-rules 10 rules))
+(define rules1 (pick-n-rand-rules 5 rules))
 
-(seq-build (strip-list-func rules1) data 6 10)
-(seq-build (strip-list-func rules2) data 6 10)
-(seq-build (strip-list-func rules3) data 6 10)
-(seq-build (strip-list-func rules4) data 6 10)
+(seq-build (strip-list-func rules1) data 4 5)
 ;(last (makeRules symbols (car (non-dec (floor (uniform 1 10000)) 1))))
 
 #|(define samples

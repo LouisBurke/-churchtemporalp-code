@@ -1,5 +1,5 @@
-;#lang scheme
-;(require (planet williams/science/random-source))
+#lang scheme
+(require (planet williams/science/random-source))
 
 (define rember
         (lambda  (a L) 
@@ -164,6 +164,19 @@
   )
 )
 
+(define make-rules-simple
+    (lambda(L n start) 
+         (letrec ([A start]
+                  [B (random-element L)]
+                  [C '()]
+                  [reg-op1 (cons (lambda (x)  (car x)) (list 'car 'X))])
+           (list (list (lambda(X) 
+                         (if (equal? ((car reg-op1) X) A) B C)) 
+                           (list 'lambda '(X) (list 'if (list 'equal? (list (cadr reg-op1) 'X) A) B C))))                                                              ; mod 2 = 0
+         )
+    )
+)
+
 (define makeRules
     (lambda(L n) 
          (letrec (
@@ -177,7 +190,7 @@
                   [logic-operator (if (= 0 (modulo-n n 2)) (cons (lambda (x)  (recursive-or x)) (list 'recursive-or))      ; mod 2 = 0
                                                            (cons (lambda (x)  (recursive-and x))(list 'recursive-and)))]   ; mod 2 = 1
                   [reg-op1 (if (= 0 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
-                               (cons (lambda (x)  (car x)) (list (list 'car 'x)))                                                    ; mod 3 = 0 
+                               (cons (lambda (x)  (car x)) (list 'car 'X))                                                    ; mod 3 = 0 
                            (if (= 1 (modulo-n (truncate (recursive-divide n '(2))) 3)) 
                                (cons (lambda (x) (if (> (length x) 1) (cadr x) '())) 
                                      (list (list 'lambda '(x) (list 'if (list '> (list 'length 'x) 1) (list 'cadr 'x) '()))))
@@ -215,7 +228,14 @@
     ) 
 )
 
-(define rules (makeRulesRepeat 108 symbols))
+(define make-simple-rules-repeat
+    (lambda(num symbols start)
+        (if  (eq? num 0) '() (append (make-rules-simple symbols num start) (make-simple-rules-repeat (- num 1) symbols data)))
+    ) 
+)
+
+(define rules (makeRulesRepeat 72 symbols))
+(define simple-rules (make-simple-rules-repeat 72 symbols data))
 
 #|(define hidden_rules (patternBuild-repeat-n num-new-symbols rules data))
 
@@ -234,9 +254,10 @@
         )
 )
 
+
 (define stream 
   (lambda (rules len)
-    (let ([rand-rules (pick-n-rand-rules 6 rules)])
+    (let ([rand-rules (pick-n-rand-rules 5 rules)])
       (let ([sym-list (flatten (seq-build (strip-list-func rand-rules) data))])
         (if (= len (length sym-list)) (list sym-list rand-rules) (stream rules len))
       )
@@ -244,11 +265,13 @@
   )
 )
 
-(define observedData (car (stream rules 4)))
+(define U (append rules simple-rules))
+
+(define observedData (car (stream U 6)))
 
 observedData
 
-;(flatten (seq-build (strip-list-func (pick-n-rand-rules 6 rules)) data))
+#|(flatten (seq-build (strip-list-func (pick-n-rand-rules 6 rules)) data))
 
 (define rules-index (pick-n-rand-rules-index 5 rules))
 
@@ -261,7 +284,7 @@ observedData
      1000 10  
      
      (define rules-index (pick-n-rand-rules-index 5 rules))
-     (define rules-sample (strip-list-func (get-rules-by-index rules (pick-n-rand-rules-index 5 rules)))
+     (define rules-sample (strip-list-func (get-rules-by-index rules (pick-n-rand-rules-index 5 rules))))
           
      rules-index     
      
@@ -271,7 +294,7 @@ observedData
 
 (occurences samples)
 
-#|(define samples
+(define samples
   (mh-query
      500 10
 
@@ -309,3 +332,4 @@ observedData
 (occurences samples)
 (list (last (dataBuild-repeat-n (caar (occurences samples)) data)) #\newline observedData)|#
 
+ 

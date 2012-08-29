@@ -253,7 +253,7 @@
 )
 
 (define rules (makeRulesRepeat 72 symbols))
-(define simple-rules-1 (make-simple-rules-repeat 72 simple-symbols data))
+(define simple-rules-1 (make-simple-rules-repeat 36 simple-symbols data))
 ;(define simple-rules-2 (make-simple-rules-repeat 18 simple-symbols data-1))
 
 #|(define hidden_rules (patternBuild-repeat-n num-new-symbols rules data))
@@ -275,7 +275,7 @@
 
 (define stream 
   (lambda (rules len)
-    (let ([rand-rules rules]);(pick-n-rand-rules 2 rules)])
+    (let ([rand-rules (pick-n-rand-rules 5 rules)])
       (let ([sym-list (flatten (seq-build (strip-list-func rand-rules) data 0 len))])
         (let ([sym-length (length sym-list)])
           ;(if (= sym-length len) (list '()) '())
@@ -289,7 +289,7 @@
 (define U (append rules simple-rules-1))
 ;(define U (two-rules))
 
-(define observedData (car (stream U 30)))
+(define observedData (stream U 7))
 
 observedData
 

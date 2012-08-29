@@ -89,11 +89,11 @@
 )
 
 (define seq-build 
-  (lambda (rules D)
+  (lambda (rules D len n)
     (let ([applies (applies? rules D 0)])
-      (if (null? applies) (list D)
+      (if (or (= len (- n 1)) (null? applies)) (list D)
         (seq-build rules 
-          (flatten (list ((list-ref rules (random-element applies)) D) D)))
+          (flatten (list ((list-ref rules (random-element applies)) D) D)) (+ len 1) n)
       )     
     )
   )
@@ -177,6 +177,22 @@
     )
 )
 
+(define two-rules
+    (lambda() 
+         (letrec ([A 'a]
+                  [B 'b]
+                  [C '()]
+                  [reg-op1 (cons (lambda (x)  (car x)) (list 'car 'X))])
+           (list (list (lambda(X) 
+                         (if (equal? ((car reg-op1) X) A) B C)) 
+                           (list 'lambda '(X) (list 'if (list 'equal? (list (cadr reg-op1) 'X) A) B C)))
+                 (list (lambda(X) 
+                         (if (equal? ((car reg-op1) X) B) A C)) 
+                           (list 'lambda '(X) (list 'if (list 'equal? (list (cadr reg-op1) 'X) B) A C))))                                                              ; mod 2 = 0
+         )
+    )
+)
+
 (define makeRules
     (lambda(L n) 
          (letrec (
@@ -237,8 +253,8 @@
 )
 
 (define rules (makeRulesRepeat 72 symbols))
-(define simple-rules-1 (make-simple-rules-repeat 18 simple-symbols data))
-(define simple-rules-2 (make-simple-rules-repeat 18 simple-symbols data-1))
+(define simple-rules-1 (make-simple-rules-repeat 72 simple-symbols data))
+;(define simple-rules-2 (make-simple-rules-repeat 18 simple-symbols data-1))
 
 #|(define hidden_rules (patternBuild-repeat-n num-new-symbols rules data))
 
@@ -259,8 +275,8 @@
 
 (define stream 
   (lambda (rules len)
-    (let ([rand-rules (pick-n-rand-rules 5 rules)])
-      (let ([sym-list (flatten (seq-build (strip-list-func rand-rules) data))])
+    (let ([rand-rules rules]);(pick-n-rand-rules 2 rules)])
+      (let ([sym-list (flatten (seq-build (strip-list-func rand-rules) data 0 len))])
         (let ([sym-length (length sym-list)])
           ;(if (= sym-length len) (list '()) '())
             (if (= sym-length len) (list sym-list rand-rules) (stream rules len))
@@ -270,13 +286,12 @@
   )
 )
 
-(define U (append rules simple-rules-1 simple-rules-2))
+(define U (append rules simple-rules-1))
+;(define U (two-rules))
 
-U
+(define observedData (car (stream U 30)))
 
-(define observedData (car (stream U 3)))
-
-(length observedData)
+observedData
 
 #|(flatten (seq-build (strip-list-func (pick-n-rand-rules 6 rules)) data))
 

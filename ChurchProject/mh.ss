@@ -1,5 +1,5 @@
-#lang scheme
-(require (planet williams/science/random-source))
+;#lang scheme
+;(require (planet williams/science/random-source))
 
 (define rember
         (lambda  (a L) 
@@ -274,12 +274,26 @@
 )
 
 (define stream 
-  (lambda (rules len)
-    (let ([rand-rules (pick-n-rand-rules 5 rules)])
+  (lambda (rules len num)
+    (let* ([rules-index (pick-n-rand-rules-index num rules)]
+           [rand-rules (get-rules-by-index U rules-index)])
       (let ([sym-list (flatten (seq-build (strip-list-func rand-rules) data 0 len))])
         (let ([sym-length (length sym-list)])
           ;(if (= sym-length len) (list '()) '())
-            (if (= sym-length len) (list sym-list rand-rules) (stream rules len))
+            (if (= sym-length len) (list sym-list rand-rules rules-index) (stream rules len num))
+        )
+      )
+    )
+  )
+)
+
+(define stream-set-rules 
+  (lambda (rules len)
+    (let ([rand-rules rules])
+      (let ([sym-list (flatten (seq-build (strip-list-func rand-rules) data 0 len))])
+        (let ([sym-length (length sym-list)])
+          ;(if (= sym-length len) (list '()) '())
+            (if (= sym-length len) (list sym-list rand-rules) (stream-set-rules rules len))
         )
       )
     )
@@ -287,71 +301,116 @@
 )
 
 (define U (append rules simple-rules-1))
-;(define U (two-rules))
 
-(define observedData (stream U 7))
+(define observed-data-n-rules (stream U 4 2))
+(define observed-rules (cadr observed-data-n-rules))
+(define observed-data (car observed-data-n-rules))
+(define observed-rules-index (caddr observed-data-n-rules))
 
-observedData
+(define (samples)
+  (rejection-query
+     ;5000 10  
+     
+     (define rules-index (pick-n-rand-rules-index (length observed-rules) U))
+     (define rules-sample (get-rules-by-index U rules-index))
+     (define seq (car (seq-build (strip-list-func rules-sample) data 0 (length observed-data))))
+     
+     (list rules-index seq)     
+     
+     (equal? observed-data seq)
+  )
+)
 
-#|(flatten (seq-build (strip-list-func (pick-n-rand-rules 6 rules)) data))
+#|
+(define samples
+  (mh-query
+     100 100  
+     
+     (define rules-index (pick-n-rand-rules-index 10 U))
+     (define rules-sample (get-rules-by-index U rules-index))
+     (define seq (car (seq-build (strip-list-func rules-sample) data 0 10)))
+     
+     (list rules-index seq)     
+     
+     #t
+  )
+)
 
-(define rules-index (pick-n-rand-rules-index 5 rules))
+(define (samples)
+  (rejection-query
+     ;5000 10  
+     
+     (define rules-index (pick-n-rand-rules-index 10 U))
+     (define rules-sample (get-rules-by-index U rules-index))
+     (define seq (car (seq-build (strip-list-func rules-sample) data 0 10)))
+     
+     (list rules-index seq)     
+     
+     #t
+  )
+)
 
-;(last (makeRules symbols (car (non-dec (floor (uniform 1 10000)) 1))))
+(define samples
+  (mh-query
+     5000 10  
+     
+     (define rules-index (pick-n-rand-rules-index 10 U))
+     (define rules-sample (get-rules-by-index U rules-index))
 
-(strip-list-func (get-rules-by-index rules (pick-n-rand-rules-index 5 rules)))
+     rules-index     
+     
+     (equal? observed-data (car (seq-build (strip-list-func rules-sample) data 0 10)))
+  )
+)
 
 (define samples
   (mh-query
      1000 10  
      
-     (define rules-index (pick-n-rand-rules-index 5 rules))
-     (define rules-sample (strip-list-func (get-rules-by-index rules (pick-n-rand-rules-index 5 rules))))
+     (define rules-index (pick-n-rand-rules-index 10 U))
+     (define rules-sample (get-rules-by-index U rules-index))
           
-     rules-index     
+     (seq-build (strip-list-func rules-sample) data 0 6)
      
-     (equal? observedData (seq-build rules-sample data))
-   )
-)
-
-(occurences samples)
-
-(define samples
-  (mh-query
-     500 10
-
-     (define data_n_rules (patternBuild-repeat-n num-new-symbols rules data)) 
-
-     ;(expose_rule_desc data_n_rules)
-     data_n_rules
-
-     (equal? observedData (last (expose_data data_n_rules data)))
-   )
-)
-
-(define samples
-  (mh-query
-     2000 10
-
-     (equal? observedData (last (expose_data (patternBuild-repeat-n num-new-symbols rules data) data)))
-
      #t
    )
 )
+
 (define samples
   (mh-query
-     10000 10
-
-     (define data_n_rules (patternBuild-repeat-n num-new-symbols rules data)) 
-
-     ;(expose_rule_desc data_n_rules)
-     (equal? observedData (last (expose_data data_n_rules data)))
-
-     (equal? (cdr observedData) (cdr (last (expose_data data_n_rules data))))
+     10000 10  
+     
+     (define rules-index (pick-n-rand-rules-index 10 U))
+     (define rules-sample (get-rules-by-index U rules-index))
+          
+     (> (length (car (seq-build (strip-list-func rules-sample) data 0 10))) 3)
+     
+     #t
+   )
+)|#
+#|
+(define samples2
+  (mh-query
+     5000 10  
+          
+     (car (stream-set-rules (expose_rule_func  (get-rules-by-index U (caar (occurences samples)))) (length observed-data)))
+     
+     #t
    )
 )
 
-(occurences samples)
-(list (last (dataBuild-repeat-n (caar (occurences samples)) data)) #\newline observedData)|#
+(define match (lambda (L D)
+  (if (null? L) '() 
+    (if (equal? (caar L) D) (car L) (match (cdr L) D)))))
 
- 
+(define proportion (match (occurences samples2) observed-data))
+
+(list (occurences samples2) #\newline #\newline
+        (quote observed-data-=) observed-data #\newline #\newline
+        (list (/ (last proportion) 5000.0 ) 'chance 'of 'inferred 'rules 'producing 'observed 'data))
+|#
+;(list (car (stream-set-rules observed-rules (length observed-data)))
+;      (car (stream-set-rules (expose_rule_func  (get-rules-by-index U (caar (occurences samples)))) (length observed-data))))
+
+(list (occurences (repeat 2000 samples)) 'observed-rules-index observed-rules-index)
+

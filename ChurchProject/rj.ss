@@ -1,5 +1,5 @@
-;#lang scheme
-;(require (planet williams/science/random-source))
+#lang scheme
+(require (planet williams/science/random-source))
 
 (define rember
         (lambda  (a L) 
@@ -134,7 +134,7 @@
 (define get-rules-by-index 
         (lambda (rules index) 
                  (if (null? index) (quote ( ) )
-                     (cons (list-ref rules (- 1 (car index)))
+                     (cons (list-ref rules (- (car index) 1))
                            (get-rules-by-index rules (cdr index)))
                  )
         )
@@ -422,7 +422,7 @@
 (define observed-data (car observed-data-n-rules))
 (define observed-rules-index (caddr observed-data-n-rules))
 
-(define (samples)
+#|(define (samples)
   (rejection-query
      ;5000 10  
      
@@ -439,7 +439,7 @@
 )
 
 
-#|(define samples
+(define samples
   (mh-query
      100 1000  
      
@@ -500,7 +500,7 @@
 ;(max (car (list-freq occurs)))
 
 
-
+|#
 
 
 
